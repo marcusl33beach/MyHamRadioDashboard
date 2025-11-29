@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- CRITICAL: Helps load images from strict servers -->
-<meta name="referrer" content="no-referrer">
+    <meta name="referrer" content="no-referrer">
     <title>MyHamDashboard</title>
     <style>
         /* GLOBAL RESET */
@@ -97,7 +96,7 @@
         }
 
         /* ----------------------------------------------------- */
-        /* COMPACT TICKER & INTEGRATED MENU STYLES               */
+        /* COMPACT TICKER & INTEGRATED MENU STYLES                */
         /* ----------------------------------------------------- */
         #ticker-wrap {
             position: fixed;
@@ -182,7 +181,7 @@
         }
 
         @keyframes scroll-left {
-            0%   { transform: translateX(0); }
+            0%  { transform: translateX(0); }
             100% { transform: translateX(-100%); }
         }
 
@@ -227,7 +226,7 @@
         }
 
         /* ----------------------------------------------------- */
-        /* GEMINI ANALYSIS BUTTON & MODAL                        */
+        /* GEMINI ANALYSIS BUTTON & MODAL                          */
         /* ----------------------------------------------------- */
 
         #gemini-button {
@@ -326,12 +325,10 @@
     <div id="page-container">
         <main id="grid-container"></main>
         
-        <!-- GEMINI BUTTON -->
         <button id="gemini-button" onclick="showGeminiModal()">
             ✨ Propagation Analyst
         </button>
 
-        <!-- COMPACT TICKER BAR -->
         <div id="ticker-wrap">
             <div id="ticker-title">
                 Menu &#9650; 
@@ -339,6 +336,7 @@
                     <a href="https://www.weather.gov/" target="_blank">NWS Home</a>
                     <a href="https://mygmrs.com/" target="_blank">MyGMRS</a>
                     <a href="https://www.qrz.com/" target="_blank">QRZ.com</a>
+                    <a href="https://hamstudy.org/" target="_blank">HamStudy.org (NEW)</a> 
                     <a href="http://websdr.org/" target="_blank">WebSDR</a> 
                     <a href="https://www.radioreference.com/db/browse/stid/21" target="_blank">RadioReference KY</a>
                     <a href="https://www.repeaterbook.com/repeaters/index.php?state_id=21" target="_blank">RepeaterBook KY</a>
@@ -349,22 +347,19 @@
         </div>
     </div>
 
-    <!-- LIGHTBOX CONTAINER -->
     <div id="lightbox" onclick="closeLightbox()">
         <span id="lightbox-close">&times;</span>
         <img id="lightbox-img" class="lightbox-content-style" style="display:none;">
         <video id="lightbox-video" class="lightbox-content-style" style="display:none;" controls autoplay loop></video>
     </div>
 
-    <!-- GEMINI MODAL -->
     <div id="gemini-modal">
         <div id="gemini-modal-header">
             <h3 style="margin:0; color: white;">✨ Current Propagation Analysis</h3>
             <span class="close-btn" onclick="closeGeminiModal()">&times;</span>
         </div>
         <div id="gemini-modal-content">
-            <!-- Content filled by JavaScript -->
-        </div>
+            </div>
     </div>
 
     <script>
@@ -372,6 +367,7 @@
         const API_KEY = ""; 
         const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
         const MAX_RETRIES = 5;
+        const IMAGE_REFRESH_RATE_MS = 120000; // 2 minutes
 
         /* 1. DEFINE CONTENT URLs AND TITLES */
         const contentData = [
@@ -443,6 +439,7 @@
                     el.autoplay = true; el.loop = true; el.muted = true; el.controls = false;
                 } else {
                     el = document.createElement('img');
+                    el.setAttribute('data-base-src', url); // Store the original URL for refreshing
 
                     // Add cache-busting timestamp to the image source for forced refresh
                     const timestamp = new Date().getTime();
@@ -477,8 +474,39 @@
                 gridContainer.appendChild(gridItem);
             });
         }
+        
+        /* 4. IMAGE REFRESH LOGIC (NEW) */
+        function refreshImages() {
+            const images = document.querySelectorAll('#grid-container img');
+            const video = document.querySelectorAll('#grid-container video'); // Include videos too
 
-        /* 4. LIGHTBOX LOGIC (Unchanged) */
+            // Refresh all images
+            images.forEach(img => {
+                const url = img.getAttribute('data-base-src');
+                if (url) {
+                    // Create a new URL with a fresh timestamp
+                    const timestamp = new Date().getTime();
+                    const freshUrl = url + (url.includes('?') ? '&' : '?') + 't=' + timestamp;
+                    
+                    // Force the browser to reload the image
+                    img.src = freshUrl;
+                }
+            });
+
+            // Refresh all videos (mainly to reset them if they were showing content)
+            video.forEach(v => {
+                // For videos, re-setting the source and reloading the video element is the simplest way.
+                const currentSrc = v.src;
+                if (currentSrc) {
+                    v.load(); 
+                }
+            });
+
+            console.log('Dashboard images and videos refreshed.');
+        }
+
+
+        /* 5. LIGHTBOX LOGIC (Unchanged) */
         function openLightbox(url, type) {
             const lightbox = document.getElementById('lightbox');
             const imgEl = document.getElementById('lightbox-img');
@@ -513,7 +541,7 @@
             videoEl.src = ""; 
         }
 
-        /* 5. WEATHER TICKER LOGIC (Unchanged) */
+        /* 6. WEATHER TICKER LOGIC (Unchanged) */
         
         // Coordinates for Boone County, KY (near Florence/Cincinnati)
         const LATITUDE = 38.98;
@@ -573,7 +601,7 @@
             }
         }
 
-        /* 6. GEMINI PROPAGATION ANALYST LOGIC (Unchanged) */
+        /* 7. GEMINI PROPAGATION ANALYST LOGIC (Unchanged) */
 
         function showGeminiModal() {
             const modal = document.getElementById('gemini-modal');
@@ -741,7 +769,12 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             buildGrid();
-            // Update the weather ticker every 15 minutes (900,000 milliseconds)
+            
+            // 1. IMAGE REFRESH: Start refreshing the images every 2 minutes (120000ms)
+            refreshImages(); // Initial call
+            setInterval(refreshImages, IMAGE_REFRESH_RATE_MS); 
+
+            // 2. TICKER REFRESH: Update the weather ticker every 15 minutes (900,000 milliseconds)
             updateTicker();
             setInterval(updateTicker, 900000); 
         });
