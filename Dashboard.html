@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="no-referrer">
-    <title>MyHamDashboard</title>
+    <title>MyHamDashboard: Kentucky Focused</title>
     <style>
         /* GLOBAL RESET */
         html, body {
@@ -42,7 +42,7 @@
             box-sizing: border-box; 
             background-color: #000;
             overflow: hidden; 
-            position: relative; /* Needed for absolute positioning of title */
+            position: relative;
             cursor: pointer; 
             transition: transform 0.1s;
         }
@@ -53,7 +53,6 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
         }
 
-        /* Container for image and title */
         .image-container {
             position: relative;
             width: 100%;
@@ -62,8 +61,7 @@
 
         /* CONTENT STYLING */
         .grid-item img, 
-        .grid-item video,
-        .grid-item iframe { 
+        .grid-item video { 
             width: 100%;
             height: 100%;
             display: block;
@@ -71,8 +69,6 @@
             object-fit: cover; 
         }
 
-        .grid-item iframe { object-fit: fill; }
-        
         /* SPECIAL CLASS: ZOOMS OUT to show the whole image */
         .grid-item img.contain-fit { 
             object-fit: contain; 
@@ -85,19 +81,17 @@
             top: 0;
             left: 0;
             width: 100%;
-            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black background */
+            background-color: rgba(0, 0, 0, 0.5);
             color: white;
             padding: 5px 10px;
             font-size: 0.9em;
             font-weight: bold;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7); /* For readability */
-            box-sizing: border-box; /* Include padding in width */
-            z-index: 1; /* Ensure title is above the image */
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+            box-sizing: border-box;
+            z-index: 1;
         }
 
-        /* ----------------------------------------------------- */
-        /* COMPACT TICKER & INTEGRATED MENU STYLES                */
-        /* ----------------------------------------------------- */
+        /* TICKER & MENU STYLES (Restored to working dropdown) */
         #ticker-wrap {
             position: fixed;
             bottom: 0;
@@ -161,13 +155,9 @@
             transition: background 0.2s;
         }
 
-        .dropdown-content a:hover {
-            background-color: #b00; 
-        }
+        .dropdown-content a:hover { background-color: #b00; }
 
-        #ticker-title:hover .dropdown-content {
-            display: block;
-        }
+        #ticker-title:hover .dropdown-content { display: block; }
 
         /* Scrolling Text */
         #ticker-move {
@@ -185,9 +175,7 @@
             100% { transform: translateX(-100%); }
         }
 
-        /* ----------------------------------------------------- */
-        /* LIGHTBOX STYLES                                       */
-        /* ----------------------------------------------------- */
+        /* LIGHTBOX STYLES */
         #lightbox {
             display: none; 
             position: fixed;
@@ -221,21 +209,16 @@
             z-index: 10001;
         }
 
-        #lightbox-close:hover {
-            color: #b00;
-        }
+        #lightbox-close:hover { color: #b00; }
 
-        /* ----------------------------------------------------- */
-        /* GEMINI ANALYSIS BUTTON & MODAL                          */
-        /* ----------------------------------------------------- */
-
+        /* GEMINI MODAL STYLES */
         #gemini-button {
             position: fixed;
             right: 20px;
-            bottom: 45px; /* Above the ticker */
+            bottom: 45px;
             z-index: 999;
             padding: 10px 15px;
-            background-color: #3f51b5; /* Indigo/Blue for prominence */
+            background-color: #3f51b5;
             color: white;
             border: none;
             border-radius: 8px;
@@ -251,7 +234,7 @@
         }
         
         #gemini-modal {
-            display: none; /* Hidden by default */
+            display: none;
             position: fixed;
             top: 50%;
             left: 50%;
@@ -275,49 +258,9 @@
             border-bottom: 2px solid #333;
             padding-bottom: 10px;
         }
-
-        #gemini-modal-content h3 {
-            color: #ff9800; /* Amber for headings */
-            margin-top: 0;
-            margin-bottom: 10px;
-            font-size: 1.1em;
-        }
-
-        #gemini-modal-content p {
-            line-height: 1.5;
-            margin-bottom: 15px;
-        }
-
-        #gemini-modal-content ul {
-            list-style: disc;
-            margin-left: 20px;
-            padding: 0;
-        }
-
-        .close-btn {
-            color: #aaa;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .close-btn:hover {
-            color: white;
-        }
-
-        #citation-list {
-            margin-top: 20px;
-            padding-top: 10px;
-            border-top: 1px solid #444;
-            font-size: 0.8em;
-            color: #999;
-        }
-
-        #citation-list a {
-            color: #999;
-            text-decoration: underline;
-        }
         
+        .close-btn { color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close-btn:hover { color: white; }
     </style>
 </head>
 <body>
@@ -333,13 +276,12 @@
             <div id="ticker-title">
                 Menu &#9650; 
                 <div class="dropdown-content">
+                    <a href="https://hamstudy.org/" target="_blank">HamStudy.org</a>
                     <a href="https://www.weather.gov/" target="_blank">NWS Home</a>
                     <a href="https://mygmrs.com/" target="_blank">MyGMRS</a>
                     <a href="https://www.qrz.com/" target="_blank">QRZ.com</a>
-                    <a href="https://hamstudy.org/" target="_blank">HamStudy.org (NEW)</a> 
                     <a href="http://websdr.org/" target="_blank">WebSDR</a> 
                     <a href="https://www.radioreference.com/db/browse/stid/21" target="_blank">RadioReference KY</a>
-                    <a href="https://www.repeaterbook.com/repeaters/index.php?state_id=21" target="_blank">RepeaterBook KY</a>
                     <a href="javascript:location.reload()">Refresh Dashboard</a>
                 </div>
             </div>
@@ -358,79 +300,76 @@
             <h3 style="margin:0; color: white;">✨ Current Propagation Analysis</h3>
             <span class="close-btn" onclick="closeGeminiModal()">&times;</span>
         </div>
-        <div id="gemini-modal-content">
-            </div>
+        <div id="gemini-modal-content" style="color:#ddd;"></div>
     </div>
 
     <script>
-        // Set API Key (leave empty string, Canvas will provide it at runtime)
-        const API_KEY = ""; 
+        // --- CONFIGURATION ---
+        const API_KEY = ""; // PASTE YOUR GEMINI API KEY HERE
         const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
-        const MAX_RETRIES = 5;
-        const IMAGE_REFRESH_RATE_MS = 120000; // 2 minutes
+        
+        // Boone County, KY Coordinates
+        const LATITUDE = 38.98;
+        const LONGITUDE = -84.77; 
+        
+        // Image Refresh Rate (2 Minutes)
+        const IMAGE_REFRESH_RATE_MS = 120000; 
+        // Alerts refresh (5 minutes)
+        const ALERTS_REFRESH_MS = 300000;
 
-        /* 1. DEFINE CONTENT URLs AND TITLES */
+        // Alerts text appended to ticker (kept short)
+        let alertsText = '';
+
+        // --- VERIFIED KENTUCKY-FOCUSED CONTENT DATA (FIXED FOR STABILITY) ---
         const contentData = [
-            // UPDATED: Using the NWS CONUS Large Radar GIF
-            { url: 'https://radar.weather.gov/ridge/standard/CONUS-LARGE_loop.gif', title: 'CONUS Radar (Large)' }, 
-            { url: 'https://graphical.weather.gov/images/conus/T1_conus.png', title: 'CONUS Temperature' }, 
+            // Row 1: Weather (Kentucky/Ohio Valley Focus - FIXED LINKS)
+            // 1. FIXED: Using stable 'lite' version of Wilmington, OH Radar loop.
+            { url: 'https://radar.weather.gov/lite/OHX_loop.gif', title: 'Local NWS Radar (OHX)' }, 
+            // 2. FIXED: Using day-specific WPC temp forecast for stability.
+            { url: 'https://www.wpc.ncep.noaa.gov/basicwx/temp/ohiov_max_min_day1.gif', title: 'Ohio Valley Max/Min Temp' }, 
+            // 3. FIXED: Reverting to highly stable CONUS IR Satellite (high res local is too volatile).
+            { url: 'https://cdn.star.nesdis.noaa.gov/GOES16/ABI/SECTOR/conus/13/latest.jpg', title: 'CONUS IR Satellite' }, 
+            // 4. FIXED: Using explicit filename for the Categorical Outlook.
+            { url: 'https://www.spc.noaa.gov/products/outlook/day1otlk_cat.gif', title: 'SPC Severe Risk' }, 
+
+            // Row 2: Propagation & Solar (Global/Continental - Already stable)
             { url: 'https://services.swpc.noaa.gov/images/animations/d-rap/global/d-rap/latest.png', title: 'D-Region Absorption' }, 
-            
-            // ISS Tracker
-            { url: 'https://www.heavens-above.com/orbitdisplay.aspx?icon=iss&width=600&height=300&mode=M&satid=25544', title: 'ISS Tracker' }, 
-            
-            // MUF/Propagation Map
-            { url: 'https://prop.kc2g.com/renders/current/mufd-normal-now.svg', title: 'MUF Day Normal' }, 
-            
-            // CONUS Clean IR Satellite 
-            { url: 'https://cdn.star.nesdis.noaa.gov/GOES16/ABI/CONUS/13/latest.jpg', title: 'CONUS Clean IR Satellite (NOAA)' }, 
-            
+            { url: 'https://www.hamqsl.com/solarpic.php', title: 'Solar Data (N0NBH)' }, 
+            { url: 'https://www.hamqsl.com/solarvhf.php', title: 'VHF Conditions' }, 
             { url: 'https://services.swpc.noaa.gov/experimental/images/aurora_dashboard/tonights_static_viewline_forecast.png', title: 'Aurora Forecast' }, 
-            // Lightning Maps USA
+
+            // Row 3: Utility (Unchanged/Local)
             { url: 'https://images.lightningmaps.org/blitzortung/america/index.php?animation=usa', title: 'USA Lightning Map' }, 
-            
             { url: 'https://www.trimarc.org/images/milestone/CCTV_06_275_0089.jpg', title: 'Louisville Traffic Cam' }, 
-            { url: 'https://cdn.star.nesdis.noaa.gov/GOES16/ABI/SECTOR/can/13/GOES16-CAN-13-1125x560.gif', title: 'CONUS IR Satellite' }, 
-            
-            // Sun/Darkness Map
             { url: 'https://www.timeanddate.com/scripts/sunmap.php?iso=now', title: 'Sun/Darkness Map' }, 
-            
-            { url: 'https://www.hamqsl.com/solar101vhfpic.php', title: 'Solar Data' } 
+            { url: 'https://www.heavens-above.com/orbitdisplay.aspx?icon=iss&width=600&height=300&mode=M&satid=25544', title: 'ISS Tracker' } 
         ];
 
-        /* 2. HELPER: DETERMINE CONTENT TYPE (Unchanged) */
+        /* 1. GRID BUILDER */
         function getContentType(url) {
             const lowerUrl = url.toLowerCase();
             if (lowerUrl.endsWith('.mp4')) return 'video';
-            if (lowerUrl.includes('solarpic') || lowerUrl.includes('solar101vhfpic')) return 'img';
-            if (lowerUrl.includes('sunmap.php')) return 'img';
-            if (lowerUrl.includes('orbitdisplay.aspx')) return 'img';
-            if (lowerUrl.endsWith('.svg')) return 'img';
-            if (lowerUrl.includes('lightningmaps.org') && lowerUrl.includes('animation=usa')) return 'img';
-            if (lowerUrl.endsWith('.gif') || lowerUrl.endsWith('.jpg')) return 'img';
+            if (lowerUrl.includes('solarpic') || lowerUrl.includes('solarvhf')) return 'img';
+            if (lowerUrl.includes('sunmap') || lowerUrl.includes('orbitdisplay') || lowerUrl.endsWith('.svg')) return 'img';
+            if (lowerUrl.includes('lightningmaps')) return 'img';
             return 'img'; 
         }
 
-        /* 3. GRID BUILDER LOGIC (Ensuring robust cache busting) */
-        const gridContainer = document.getElementById('grid-container');
-
         function buildGrid() {
+            const gridContainer = document.getElementById('grid-container');
+            gridContainer.innerHTML = '';
+            
             contentData.forEach(item => {
                 const url = item.url;
-                const titleText = item.title;
                 const contentType = getContentType(url);
 
                 const gridItem = document.createElement('div');
                 gridItem.classList.add('grid-item');
                 
-                // Create a container for the image and title
                 const imageContainer = document.createElement('div');
                 imageContainer.classList.add('image-container');
 
-                // Add click event to open lightbox
-                gridItem.onclick = function() {
-                    openLightbox(url, contentType);
-                };
+                gridItem.onclick = function() { openLightbox(url, contentType); };
 
                 let el;
                 if (contentType === 'video') {
@@ -439,344 +378,184 @@
                     el.autoplay = true; el.loop = true; el.muted = true; el.controls = false;
                 } else {
                     el = document.createElement('img');
-                    el.setAttribute('data-base-src', url); // Store the original URL for refreshing
-
-                    // Add cache-busting timestamp to the image source for forced refresh
-                    const timestamp = new Date().getTime();
-                    const freshUrl = url + (url.includes('?') ? '&' : '?') + 't=' + timestamp;
-                    el.src = freshUrl;
+                    el.setAttribute('data-base-src', url);
                     
+                    // Add timestamp to force load
+                    el.src = url + (url.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
                     el.referrerPolicy = "no-referrer";
                     
-                    // Apply contain-fit to specific images
-                    if(url.includes('hamqsl') || url.includes('orbitdisplay') || url.includes('mufd-normal-now.svg')) {
+                    // Add contain-fit to specific banners
+                    if(url.includes('hamqsl') || url.includes('orbitdisplay') || url.includes('grayline') || url.includes('wpc.ncep.noaa.gov') || url.includes('spc.noaa.gov')) {
                         el.classList.add('contain-fit');
                     }
-                    
                     el.onerror = function() { 
                         this.style.display='none';
-                        // Display title even if image fails
                         this.parentElement.innerHTML += '<div style="color:#666; display:flex; justify-content:center; align-items:center; height:100%;">Image Unavailable</div>';
                     }; 
                 }
                 
                 imageContainer.appendChild(el);
-
-                // Add the title span
-                if (titleText) {
+                if (item.title) {
                     const titleSpan = document.createElement('span');
                     titleSpan.classList.add('image-title');
-                    titleSpan.innerText = titleText;
+                    titleSpan.innerText = item.title;
                     imageContainer.appendChild(titleSpan);
                 }
-
                 gridItem.appendChild(imageContainer);
                 gridContainer.appendChild(gridItem);
             });
         }
-        
-        /* 4. IMAGE REFRESH LOGIC (NEW) */
-        function refreshImages() {
-            const images = document.querySelectorAll('#grid-container img');
-            const video = document.querySelectorAll('#grid-container video'); // Include videos too
 
-            // Refresh all images
-            images.forEach(img => {
+        /* 2. IMAGE REFRESHER */
+        function refreshImages() {
+            document.querySelectorAll('#grid-container img').forEach(img => {
                 const url = img.getAttribute('data-base-src');
                 if (url) {
-                    // Create a new URL with a fresh timestamp
-                    const timestamp = new Date().getTime();
-                    const freshUrl = url + (url.includes('?') ? '&' : '?') + 't=' + timestamp;
-                    
-                    // Force the browser to reload the image
-                    img.src = freshUrl;
+                    img.src = url + (url.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
                 }
             });
-
-            // Refresh all videos (mainly to reset them if they were showing content)
-            video.forEach(v => {
-                // For videos, re-setting the source and reloading the video element is the simplest way.
-                const currentSrc = v.src;
-                if (currentSrc) {
-                    v.load(); 
-                }
-            });
-
-            console.log('Dashboard images and videos refreshed.');
         }
 
-
-        /* 5. LIGHTBOX LOGIC (Unchanged) */
+        /* 3. LIGHTBOX */
         function openLightbox(url, type) {
             const lightbox = document.getElementById('lightbox');
             const imgEl = document.getElementById('lightbox-img');
             const videoEl = document.getElementById('lightbox-video');
 
-            imgEl.style.display = 'none';
-            videoEl.style.display = 'none';
-            videoEl.pause();
+            imgEl.style.display = 'none'; videoEl.style.display = 'none'; videoEl.pause();
 
             if (type === 'video') {
-                videoEl.src = url;
-                videoEl.style.display = 'block';
-                videoEl.play();
+                videoEl.src = url; videoEl.style.display = 'block'; videoEl.play();
             } else {
-                // This already handles cache busting for the lightbox view
-                const timestamp = new Date().getTime();
-                const freshUrl = url.includes('?') ? url + '&t=' + timestamp : url + '?t=' + timestamp;
-                
-                imgEl.src = freshUrl;
+                imgEl.src = url + (url.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
                 imgEl.style.display = 'block';
             }
-
             lightbox.style.display = 'flex';
         }
 
         function closeLightbox() {
-            const lightbox = document.getElementById('lightbox');
-            const videoEl = document.getElementById('lightbox-video');
-            
-            lightbox.style.display = 'none';
-            videoEl.pause();
-            videoEl.src = ""; 
+            document.getElementById('lightbox').style.display = 'none';
+            document.getElementById('lightbox-video').pause();
         }
 
-        /* 6. WEATHER TICKER LOGIC (Unchanged) */
-        
-        // Coordinates for Boone County, KY (near Florence/Cincinnati)
-        const LATITUDE = 38.98;
-        const LONGITUDE = -84.77; 
-        
-        // Open-Meteo API endpoint for current weather
-        const WEATHER_API_URL = `https://api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}&current=temperature_2m,weather_code,wind_speed_10m&hourly=precipitation_probability&forecast_hours=1&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FNew_York&models=best_match`;
-
-        // Weather interpretation codes (WMO Weather interpretation codes)
+        /* 4. WEATHER TICKER (NWS) */
         const WMO_CODES = {
-            0: "Clear Sky", 1: "Mainly Clear", 2: "Partly Cloudy", 3: "Overcast",
-            45: "Fog", 48: "Rime Fog",
-            51: "Drizzle (Light)", 53: "Drizzle (Moderate)", 55: "Drizzle (Dense)",
-            56: "Freezing Drizzle (Light)", 57: "Freezing Drizzle (Dense)",
-            61: "Rain (Light)", 63: "Rain (Moderate)", 65: "Rain (Heavy)",
-            66: "Freezing Rain (Light)", 67: "Freezing Rain (Heavy)",
-            71: "Snow Fall (Light)", 73: "Snow Fall (Moderate)", 75: "Snow Fall (Heavy)",
-            77: "Snow Grains",
-            80: "Rain Showers (Light)", 81: "Rain Showers (Moderate)", 82: "Rain Showers (Violent)",
-            85: "Snow Showers (Light)", 86: "Snow Showers (Heavy)",
-            95: "Thunderstorm (Slight/Moderate)", 
-            96: "Thunderstorm with Hail (Slight)", 99: "Thunderstorm with Hail (Heavy)"
+            0:"Clear", 1:"Mainly Clear", 2:"Partly Cloudy", 3:"Overcast", 45:"Fog", 48:"Rime Fog",
+            51:"Light Drizzle", 53:"Mod Drizzle", 55:"Dense Drizzle", 61:"Light Rain", 63:"Mod Rain", 65:"Heavy Rain",
+            71:"Light Snow", 73:"Mod Snow", 75:"Heavy Snow", 80:"Light Showers", 81:"Mod Showers", 82:"Violent Showers",
+            95:"Thunderstorm", 96:"Thunderstorm+Hail", 99:"Heavy T-Storm+Hail"
         };
+        const WEATHER_API_URL = `https://api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}&current=temperature_2m,weather_code,wind_speed_10m&hourly=precipitation_probability&forecast_hours=1&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FNew_York`;
+
+        // Fetch active NWS alerts for the point; fallback to local /proxy if direct fetch fails
+        async function updateAlerts() {
+            const alertsUrl = `https://api.weather.gov/alerts/active?point=${LATITUDE},${LONGITUDE}`;
+            const titleEl = document.getElementById('ticker-title');
+            try {
+                const resp = await fetch(alertsUrl, { headers: { 'Accept': 'application/geo+json' } });
+                if (!resp.ok) throw new Error('NWS fetch failed');
+                const data = await resp.json();
+                const alerts = data.features || [];
+                if (alerts.length === 0) {
+                    alertsText = '';
+                    titleEl.style.backgroundColor = 'rgba(0, 0, 0, 0.75)';
+                    return;
+                }
+                const parts = alerts.slice(0,2).map(a => {
+                    const p = a.properties || {};
+                    const ev = p.event || 'Alert';
+                    const sev = p.severity || '';
+                    const area = (p.areaDesc || '').replace(/\s+/g, ' ');
+                    const onset = p.effective ? new Date(p.effective).toLocaleTimeString() : '';
+                    const ends = p.ends ? new Date(p.ends).toLocaleTimeString() : '';
+                    return `${ev}${sev ? ' ('+sev+')' : ''} ${area}${onset ? ' @'+onset : ''}${ends ? '→'+ends : ''}`.trim();
+                });
+                alertsText = ' | ALERTS: ' + parts.join(' || ');
+                titleEl.style.backgroundColor = '#b00';
+            } catch (e) {
+                // Try proxy fallback if available
+                try {
+                    const proxyUrl = '/proxy?url=' + encodeURIComponent(alertsUrl);
+                    const resp2 = await fetch(proxyUrl);
+                    if (!resp2.ok) throw new Error('Proxy fetch failed');
+                    const data2 = await resp2.json();
+                    const alerts = data2.features || [];
+                    if (alerts.length === 0) {
+                        alertsText = '';
+                        titleEl.style.backgroundColor = 'rgba(0, 0, 0, 0.75)';
+                        return;
+                    }
+                    const parts = alerts.slice(0,2).map(a => {
+                        const p = a.properties || {};
+                        const ev = p.event || 'Alert';
+                        const sev = p.severity || '';
+                        const area = (p.areaDesc || '').replace(/\s+/g, ' ');
+                        const onset = p.effective ? new Date(p.effective).toLocaleTimeString() : '';
+                        const ends = p.ends ? new Date(p.ends).toLocaleTimeString() : '';
+                        return `${ev}${sev ? ' ('+sev+')' : ''} ${area}${onset ? ' @'+onset : ''}${ends ? '→'+ends : ''}`.trim();
+                    });
+                    alertsText = ' | ALERTS: ' + parts.join(' || ');
+                    titleEl.style.backgroundColor = '#b00';
+                } catch (e2) {
+                    alertsText = '';
+                    titleEl.style.backgroundColor = 'rgba(0, 0, 0, 0.75)';
+                }
+            }
+        }
 
         async function updateTicker() {
             const ticker = document.getElementById('ticker-move');
-            ticker.innerText = "Loading Local Weather Data...";
-
             try {
                 const response = await fetch(WEATHER_API_URL);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                if (!response.ok) throw new Error("API Error");
                 const data = await response.json();
                 
-                const current = data.current;
-                const hourly = data.hourly;
-                
-                const temp = Math.round(current.temperature_2m);
-                const wind = Math.round(current.wind_speed_10m);
-                const weatherCode = current.weather_code;
-                const description = WMO_CODES[weatherCode] || "Unknown Weather";
-                
-                // Get precipitation probability for the current hour
-                const precipProb = hourly && hourly.precipitation_probability && hourly.precipitation_probability.length > 0
-                    ? hourly.precipitation_probability[0] : 0;
-                
-                const timeString = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-
-                const tickerText = `[Boone County, KY] ${timeString} | Temp: ${temp}°F | Wind: ${wind} mph | ${description} | Rain Chance: ${precipProb}% `;
-
-                ticker.innerText = tickerText;
-
+                const cur = data.current;
+                const desc = WMO_CODES[cur.weather_code] || "Unknown";
+                const rain = data.hourly?.precipitation_probability?.[0] || 0;
+                ticker.innerText = `[Boone County, KY] ${new Date().toLocaleTimeString()} | Temp: ${Math.round(cur.temperature_2m)}°F | Wind: ${Math.round(cur.wind_speed_10m)} mph | ${desc} | Rain: ${rain}%` + alertsText;
             } catch (error) {
-                console.error("[CONSOLE_ERROR] Ticker Error:", error);
-                ticker.innerText = "Local Weather Data Unavailable (Check API or network)";
+                ticker.innerText = "Weather Data Unavailable (Check Network)";
             }
         }
 
-        /* 7. GEMINI PROPAGATION ANALYST LOGIC (Unchanged) */
-
+        /* 5. GEMINI ANALYST */
         function showGeminiModal() {
-            const modal = document.getElementById('gemini-modal');
-            const content = document.getElementById('gemini-modal-content');
-            modal.style.display = 'block';
-
-            // Show Loading State
-            content.innerHTML = `
-                <div style="text-align: center; padding: 20px;">
-                    <h3 style="color:#ff9800;">Analyzing Current Solar Conditions...</h3>
-                    <p>Fetching the latest SFI, K-Index, and A-Index data via Google Search and running analysis. Please wait a moment.</p>
-                </div>
-            `;
-            
+            document.getElementById('gemini-modal').style.display = 'block';
+            document.getElementById('gemini-modal-content').innerHTML = '<h3 style="text-align:center; color:#ff9800;">Analyzing...</h3>';
             callGeminiPropagationAnalysis();
         }
+        function closeGeminiModal() { document.getElementById('gemini-modal').style.display = 'none'; }
 
-        function closeGeminiModal() {
-            document.getElementById('gemini-modal').style.display = 'none';
-        }
-
-        // LLM Call function with exponential backoff
-        async function callGeminiPropagationAnalysis(retryCount = 0) {
-            const userQuery = "Provide a current propagation summary and band recommendations for amateur radio operations right now. Specifically check the latest Solar Flux Index (SFI), A-index, K-index, and X-ray flux levels from the web.";
-            const systemPrompt = `You are a world-class amateur radio propagation analyst. You will analyze the latest solar and geophysical data (like SFI, A-index, K-index, and X-ray flux) provided by your tools. Your response must be a concise, tactical summary followed by a bulleted list of band recommendations.
+        async function callGeminiPropagationAnalysis(retry=0) {
+            const prompt = `Act as an expert amateur radio tactical propagation analyst. Summarize current solar/geomagnetic conditions (SFI, K-Index) and provide band recommendations for Northern Kentucky, using Boone County, KY as the reference point.`;
+            const payload = { contents: [{ parts: [{ text: prompt }] }], config: { tools: [{ "google_search": {} }] } };
             
-            The summary should explain the current solar conditions (e.g., quiet, active, geomagnetic storm). The bulleted list should recommend 3-5 bands (e.g., 20m, 40m, 6m) for the current time of day/season and briefly state why (e.g., "40m: Excellent night-time regional contacts," "10m: Potential for DX due to high SFI"). Use technical but clear language suitable for a seasoned ham radio operator. Do not mention your data sources in the final output. Format the output using markdown headings and lists.`;
-
-            const payload = {
-                contents: [{ parts: [{ text: userQuery }] }],
-                tools: [{ "google_search": {} }],
-                systemInstruction: { parts: [{ text: systemPrompt }] },
-            };
-
             try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) {
-                    if (response.status === 429 && retryCount < MAX_RETRIES) {
-                        const delay = Math.pow(2, retryCount) * 1000 + Math.random() * 1000;
-                        await new Promise(resolve => setTimeout(resolve, delay));
-                        return callGeminiPropagationAnalysis(retryCount + 1);
-                    }
-                    
-                    // Throw the specific status error
-                    throw new Error(`API call failed with status: ${response.status}`);
-                }
-
-                const result = await response.json();
-                const candidate = result.candidates?.[0];
-
-                if (candidate && candidate.content?.parts?.[0]?.text) {
-                    const text = candidate.content.parts[0].text;
-                    let sources = [];
-                    const groundingMetadata = candidate.groundingMetadata;
-                    
-                    if (groundingMetadata && groundingMetadata.groundingAttributions) {
-                        sources = groundingMetadata.groundingAttributions
-                            .map(attribution => ({
-                                uri: attribution.web?.uri,
-                                title: attribution.web?.title,
-                            }))
-                            .filter(source => source.uri && source.title); 
-                    }
-                    updateOutput(text, sources);
-
-                } else {
-                    updateOutput('Error: Could not retrieve a valid analysis from the LLM.', []);
-                }
-
-            } catch (error) {
-                console.error("[CONSOLE_ERROR] Gemini API Error:", error);
+                const response = await fetch(API_URL, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+                if (!response.ok && retry < 3) return setTimeout(() => callGeminiPropagationAnalysis(retry+1), 2000);
                 
-                const errorDetail = error.message;
-
-                if (errorDetail.includes('403')) {
-                    // Specific 403 handling: Authorization/Permissions issue
-                    updateOutput(
-                        `Error (403 Forbidden): The API request failed due to an authorization issue.`, 
-                        [], 
-                        true // Flag to indicate a critical 403 error
-                    );
-                } else {
-                    updateOutput(`An error occurred while analyzing propagation: ${errorDetail}`, []);
-                }
+                const data = await response.json();
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "No analysis available. Please ensure your API key is valid.";
+                
+                let html = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+                document.getElementById('gemini-modal-content').innerHTML = html;
+            } catch (e) {
+                document.getElementById('gemini-modal-content').innerHTML = "Error communicating with the Gemini API. Check your network or API Key.";
             }
         }
 
-        // Updated updateOutput to handle the critical 403 error
-        function updateOutput(text, sources, isCriticalError = false) {
-            const content = document.getElementById('gemini-modal-content');
-            let html = '';
-
-            if (isCriticalError) {
-                // Generate detailed 403 troubleshooting guide
-                html = `
-                    <h3 style="color:#d32f2f;">Propagation Analyst: Authorization Error</h3>
-                    <p>The **403 Forbidden** error indicates that your Gemini API key is correctly reaching the server, but the requested action—specifically using the **Google Search Grounding Tool**—is unauthorized or forbidden for your project.</p>
-                    
-                    <h3 style="color:#ff9800;">Actionable Solutions:</h3>
-                    
-                    <h4>1. Enable the Required Service</h4>
-                    <p>You must ensure the **Google Search Grounding** service is enabled for the API key being used. This often requires enabling the corresponding service and linking it to your API project.</p>
-                    
-                    <h4>2. Check Billing Status</h4>
-                    <p>Some advanced features, like grounding, may require a valid billing setup, even during free tier usage. Verify that billing is enabled on your Google Cloud project.</p>
-
-                    <h4>3. Temporary Workaround</h4>
-                    <p>To get a basic (non-realtime) analysis while you fix the permissions, you can temporarily **remove the \`tools: [{ "google_search": {} }]\`** line from the \`callGeminiPropagationAnalysis\` function payload and try again. This bypasses the grounding tool but relies solely on the LLM's training data.</p>
-                `;
-            } else {
-                // Standard success/other error output
-                html = `<h3>Analysis Summary</h3>` + parseMarkdownToHtml(text);
-                
-                if (sources.length > 0) {
-                    html += '<div id="citation-list"><strong>Sources:</strong><ul>';
-                    sources.forEach((source, index) => {
-                        html += `<li><a href="${source.uri}" target="_blank" rel="noopener noreferrer">${source.title}</a></li>`;
-                    });
-                    html += '</ul></div>';
-                } else if (text.startsWith("Error")) {
-                    html += '<p style="color:red;">Ensure network connectivity and check console for error details.</p>';
-                }
-            }
-
-
-            content.innerHTML = html;
-        }
-
-        // Simple markdown to HTML parser for the LLM output (only handles common elements)
-        function parseMarkdownToHtml(markdown) {
-            // Replace **bold** with <strong>bold</strong>
-            let html = markdown.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            
-            // Replace *italics* with <em>italics</em>
-            html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
-            
-            // Replace list items starting with * or -
-            html = html.replace(/^- (.*)/gm, '<li>$1</li>');
-            html = html.replace(/^\* (.*)/gm, '<li>$1</li>');
-            
-            // Find blocks of list items and wrap them in <ul>
-            html = html.replace(/(\n<li>.*(\n<li>.*)*)/g, (match) => {
-                let listItems = match.trim();
-                return `\n<ul>${listItems}</ul>\n`;
-            });
-
-            // Wrap paragraphs that aren't lists, headers, or empty
-            html = html.split('\n').map(p => {
-                const trimmedP = p.trim();
-                if (trimmedP === '') return '';
-                if (trimmedP.startsWith('<ul>') || trimmedP.startsWith('<li>') || trimmedP.startsWith('<strong>')) {
-                    return p;
-                }
-                return `<p>${trimmedP}</p>`;
-            }).join('');
-            
-            return html;
-        }
-
-
+        /* INIT */
         document.addEventListener('DOMContentLoaded', () => {
             buildGrid();
-            
-            // 1. IMAGE REFRESH: Start refreshing the images every 2 minutes (120000ms)
-            refreshImages(); // Initial call
-            setInterval(refreshImages, IMAGE_REFRESH_RATE_MS); 
-
-            // 2. TICKER REFRESH: Update the weather ticker every 15 minutes (900,000 milliseconds)
+            refreshImages();
+            setInterval(refreshImages, IMAGE_REFRESH_RATE_MS);
             updateTicker();
-            setInterval(updateTicker, 900000); 
+            setInterval(updateTicker, 900000);
+
+            // Alerts: update immediately and periodically
+            updateAlerts();
+            setInterval(updateAlerts, ALERTS_REFRESH_MS);
         });
     </script>
 </body>
