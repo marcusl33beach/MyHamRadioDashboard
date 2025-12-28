@@ -52,3 +52,24 @@ If something is unclear
 
 ----
 Generated: automated pass — please review and request edits.
+
+Default content list
+- The dashboard uses the following `contentData` list by default unless you explicitly change it in `Dashboard.html`'s `contentData` array.
+- Default `contentData` (paste into `Dashboard.html` as-is to restore defaults):
+```json
+[
+  { "url": "https://radar.weather.gov/ridge/standard/CONUS-LARGE_loop.gif", "title": "CONUS Radar (Large)" },
+  { "url": "https://graphical.weather.gov/images/conus/T1_conus.png", "title": "CONUS Temperature" },
+  { "url": "https://meshmap.net/", "title": "MeshMap" },
+  { "url": "https://www.heavens-above.com/orbitdisplay.aspx?icon=iss&width=600&height=300&mode=M&satid=25544", "title": "ISS Tracker" },
+  { "url": "https://prop.kc2g.com/renders/current/mufd-normal-now.svg", "title": "MUF Day Normal" },
+  { "url": "https://www.wpc.ncep.noaa.gov/noaa/noaad2.gif?1766870046", "title": "Forecast Charts" },
+  { "url": "https://services.swpc.noaa.gov/experimental/images/aurora_dashboard/tonights_static_viewline_forecast.png", "title": "Aurora Forecast" },
+  { "url": "https://images.lightningmaps.org/blitzortung/america/index.php?animation=usa", "title": "USA Lightning Map" },
+  { "url": "https://www.trimarc.org/images/milestone/CCTV_06_275_0089.jpg", "title": "Traffic Cam" },
+  { "url": "https://cdn.star.nesdis.noaa.gov/GOES16/ABI/SECTOR/can/13/GOES16-CAN-13-1125x560.gif", "title": "CONUS IR Satellite" },
+  { "url": "https://www.timeanddate.com/scripts/sunmap.php?iso=now", "title": "Sun/Darkness Map" },
+  { "url": "https://www.hamqsl.com/solar101vhfpic.php", "title": "Solar Data" }
+]
+```
+- To override: edit the `contentData` array in `Dashboard.html` (search for `const contentData`). Any change you make there becomes the active set of tiles. If you want me to apply this default list into `Dashboard.html`, tell me and I will patch the file.

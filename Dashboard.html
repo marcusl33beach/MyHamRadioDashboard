@@ -4,557 +4,265 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="no-referrer">
-    <title>MyHamDashboard: Kentucky Focused</title>
+    <title>MyHamDashboard</title>
     <style>
         /* GLOBAL RESET */
         html, body {
             margin: 0;
             padding: 0;
             height: 100%;
-            overflow: hidden; 
             font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #1a1a1a; 
+            background-color: #1a1a1a;
             color: #f0f0f0;
         }
 
-        #page-container {
-            display: flex;
-            flex-direction: column;
-            height: 100vh; 
-            position: relative;
-        }
+        /* Reserve space for bottom ticker */
+        #page-container { display:flex; flex-direction:column; min-height:100vh; }
 
         /* GRID LAYOUT (4x3) */
         #grid-container {
-            flex-grow: 1; 
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             grid-template-rows: repeat(3, 1fr);
-            width: 100%;
-            height: 100%;
-            overflow: hidden; 
-        }
-
-        .grid-item {
-            width: 100%;
-            height: 100%;
-            border: 1px solid rgba(255, 255, 255, 0.1); 
-            box-sizing: border-box; 
-            background-color: #000;
-            overflow: hidden; 
-            position: relative;
-            cursor: pointer; 
-            transition: transform 0.1s;
-        }
-
-        .grid-item:hover {
-            transform: scale(1.02);
-            z-index: 5;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
-        }
-
-        .image-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-        }
-
-        /* CONTENT STYLING */
-        .grid-item img, 
-        .grid-item video { 
-            width: 100%;
-            height: 100%;
-            display: block;
-            border: none;
-            object-fit: cover; 
-        }
-
-        /* SPECIAL CLASS: ZOOMS OUT to show the whole image */
-        .grid-item img.contain-fit { 
-            object-fit: contain; 
-            background-color: #000; 
-        }
-
-        /* Image Title Styling */
-        .image-title {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            padding: 5px 10px;
-            font-size: 0.9em;
-            font-weight: bold;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+            grid-auto-rows: 1fr;
+            gap: 6px;
+            padding: 6px;
             box-sizing: border-box;
-            z-index: 1;
-        }
-
-        /* TICKER & MENU STYLES (Restored to working dropdown) */
-        #ticker-wrap {
-            position: fixed;
-            bottom: 0;
-            left: 0;
             width: 100%;
-            height: 30px; 
-            background-color: rgba(0, 0, 0, 0.75); 
-            border-top: 1px solid #555;
-            overflow: visible; 
-            white-space: nowrap;
-            z-index: 9999; 
-            display: flex;
-            align-items: center;
-            backdrop-filter: blur(5px);
-        }
-
-        #ticker-title {
-            background-color: rgba(0, 0, 0, 0.75); 
-            color: white;
-            padding: 0 15px;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            font-weight: bold;
-            font-size: 0.85em; 
-            z-index: 10;
-            border-right: 1px solid #555; 
-            cursor: pointer; 
-            position: relative; 
-            transition: background-color 0.3s;
-        }
-
-        #ticker-title:hover {
-            background-color: #333; 
-        }
-
-        /* Dropdown Menu */
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            bottom: 30px; 
-            left: 0;
-            background-color: rgba(0, 0, 0, 0.9);
-            min-width: 200px;
-            box-shadow: 0px -4px 16px rgba(0,0,0,0.5);
-            border-top-left-radius: 8px;
-            border-top-right-radius: 8px;
+            height: calc(100vh - 34px); /* leave room for ticker */
             overflow: hidden;
-            border: 1px solid #444;
-            border-bottom: none;
-            backdrop-filter: blur(5px);
+            min-height: 0;
         }
 
-        .dropdown-content a {
-            color: #f0f0f0;
-            padding: 10px 16px;
-            text-decoration: none;
-            display: block;
-            font-size: 0.9em;
-            border-bottom: 1px solid #333;
-            transition: background 0.2s;
-        }
+        .grid-item { position: relative; background:#000; border:1px solid rgba(255,255,255,0.08); overflow:hidden; min-height:0 }
+        .image-container { width:100%; height:100%; display:block; min-height:0 }
+        .grid-item img, .grid-item video { width:100%; height:100%; object-fit:cover; display:block }
+        .grid-item img.contain-fit { object-fit:contain; background:#000 }
 
-        .dropdown-content a:hover { background-color: #b00; }
+        .image-title { position:absolute; top:0; left:0; width:100%; background:rgba(0,0,0,0.5); padding:6px 10px; font-weight:700; z-index:2 }
+        .link-placeholder { display:flex; align-items:center; justify-content:center; width:100%; height:100%; color:#ddd; background:linear-gradient(180deg,#111,#000); font-weight:700 }
 
-        #ticker-title:hover .dropdown-content { display: block; }
+        /* TICKER */
+        #ticker-wrap { position:fixed; left:0; right:0; bottom:0; height:34px; background:rgba(0,0,0,0.8); border-top:1px solid #444; display:flex; align-items:center; z-index:9999 }
+        #ticker-title { padding:0 12px; background:rgba(0,0,0,0.7); color:#fff; height:34px; line-height:34px; display:flex; align-items:center; border-right:1px solid #444; position:relative; flex:0 0 auto }
+        /* Dropdown Menu */
+        .dropdown-content { display:none; position:absolute; bottom:34px; left:0; background-color:rgba(0,0,0,0.95); min-width:200px; box-shadow:0px -4px 16px rgba(0,0,0,0.5); border:1px solid #444; border-bottom:none; z-index:10000 }
+        .dropdown-content a { color:#f0f0f0; padding:8px 12px; display:block; text-decoration:none; font-size:0.9em }
+        .dropdown-content a:hover { background:rgb(78, 77, 77) }
+        #ticker-title:hover .dropdown-content { display:block }
+        /* Scrolling feed constrained to remaining space */
+        #ticker-move { flex:1 1 auto; overflow:hidden; height:100%; display:flex; align-items:center }
+        #ticker-inner { display:inline-block; padding-left:100%; white-space:nowrap; animation:scroll-left 30s linear infinite; color:#fff; }
+        @keyframes scroll-left { 0%{transform:translateX(0)} 100%{transform:translateX(-100%)} }
 
-        /* Scrolling Text */
-        #ticker-move {
-            display: inline-block;
-            padding-left: 100%;
-            animation: scroll-left 30s linear infinite;
-            color: #fff;
-            font-size: 0.95em; 
-            font-weight: 500;
-            line-height: 30px; 
-        }
-
-        @keyframes scroll-left {
-            0%  { transform: translateX(0); }
-            100% { transform: translateX(-100%); }
-        }
-
-        /* LIGHTBOX STYLES */
-        #lightbox {
-            display: none; 
-            position: fixed;
-            z-index: 10000; 
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.95); 
-            justify-content: center;
-            align-items: center;
-            backdrop-filter: blur(5px);
-        }
-
-        .lightbox-content-style {
-            max-width: 95%;
-            max-height: 95%;
-            box-shadow: 0 0 20px rgba(255,255,255,0.2);
-            border: 2px solid #333;
-            object-fit: contain; 
-        }
-
-        #lightbox-close {
-            position: absolute;
-            top: 20px;
-            right: 30px;
-            color: #f1f1f1;
-            font-size: 40px;
-            font-weight: bold;
-            cursor: pointer;
-            z-index: 10001;
-        }
-
-        #lightbox-close:hover { color: #b00; }
-
-        /* GEMINI MODAL STYLES */
-        #gemini-button {
-            position: fixed;
-            right: 20px;
-            bottom: 45px;
-            z-index: 999;
-            padding: 10px 15px;
-            background-color: #3f51b5;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-            transition: background-color 0.2s, transform 0.1s;
-        }
-
-        #gemini-button:hover {
-            background-color: #303f9f;
-            transform: scale(1.05);
-        }
-        
-        #gemini-modal {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: min(80vw, 600px);
-            max-height: 80vh;
-            background-color: #2a2a2a;
-            border: 1px solid #555;
-            border-radius: 12px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
-            z-index: 10002;
-            padding: 20px;
-            overflow-y: auto;
-        }
-
-        #gemini-modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #333;
-            padding-bottom: 10px;
-        }
-        
-        .close-btn { color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; }
-        .close-btn:hover { color: white; }
+        /* LIGHTBOX */
+        #lightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); align-items:center; justify-content:center; z-index:10000 }
+        .lightbox-content-style { max-width:95%; max-height:95%; }
+        #lightbox-close { position:absolute; top:18px; right:22px; font-size:34px; color:#fff; cursor:pointer }
     </style>
 </head>
 <body>
-
     <div id="page-container">
         <main id="grid-container"></main>
-        
-        <button id="gemini-button" onclick="showGeminiModal()">
-            ✨ Propagation Analyst
-        </button>
 
         <div id="ticker-wrap">
-            <div id="ticker-title">
-                Menu &#9650; 
+            <div id="ticker-title">▾ Menu
                 <div class="dropdown-content">
                     <a href="https://hamstudy.org/" target="_blank">HamStudy.org</a>
                     <a href="https://www.weather.gov/" target="_blank">NWS Home</a>
+                    <a href="https://ohgo.com/cincinnati?lt=39.17072157631222&ln=-84.47758421160262&z=10&ls=incident,dangerous-slowdown,construction,camera" target="_blank">Cameras</a>
                     <a href="https://mygmrs.com/" target="_blank">MyGMRS</a>
                     <a href="https://www.qrz.com/" target="_blank">QRZ.com</a>
-                    <a href="http://websdr.org/" target="_blank">WebSDR</a> 
+                    <a href="http://websdr.org/" target="_blank">WebSDR</a>
                     <a href="https://www.radioreference.com/db/browse/stid/21" target="_blank">RadioReference KY</a>
                     <a href="javascript:location.reload()">Refresh Dashboard</a>
                 </div>
             </div>
-            <div id="ticker-move" id="ticker-content">Loading Weather Data...</div>
+            <div id="ticker-move"><div id="ticker-inner">Loading Weather Data...</div></div>
         </div>
     </div>
 
     <div id="lightbox" onclick="closeLightbox()">
-        <span id="lightbox-close">&times;</span>
-        <img id="lightbox-img" class="lightbox-content-style" style="display:none;">
-        <video id="lightbox-video" class="lightbox-content-style" style="display:none;" controls autoplay loop></video>
-    </div>
-
-    <div id="gemini-modal">
-        <div id="gemini-modal-header">
-            <h3 style="margin:0; color: white;">✨ Current Propagation Analysis</h3>
-            <span class="close-btn" onclick="closeGeminiModal()">&times;</span>
-        </div>
-        <div id="gemini-modal-content" style="color:#ddd;"></div>
+        <div id="lightbox-close">&times;</div>
+        <img id="lightbox-img" class="lightbox-content-style" style="display:none" />
+        <video id="lightbox-video" class="lightbox-content-style" style="display:none" controls autoplay loop></video>
     </div>
 
     <script>
-        // --- CONFIGURATION ---
-        const API_KEY = ""; // PASTE YOUR GEMINI API KEY HERE
-        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
-        
-        // Boone County, KY Coordinates
+        // --- CONFIG ---
         const LATITUDE = 38.98;
-        const LONGITUDE = -84.77; 
-        
-        // Image Refresh Rate (2 Minutes)
-        const IMAGE_REFRESH_RATE_MS = 120000; 
-        // Alerts refresh (5 minutes)
-        const ALERTS_REFRESH_MS = 300000;
-
-        // Alerts text appended to ticker (kept short)
+        const LONGITUDE = -84.77;
+        const IMAGE_REFRESH_RATE_MS = 600000; // 10 minutes
+        const ALERTS_REFRESH_MS = 600000; // 10 minutes
         let alertsText = '';
 
-        // --- VERIFIED KENTUCKY-FOCUSED CONTENT DATA (FIXED FOR STABILITY) ---
-        const contentData = [
-            // Row 1: Weather (Kentucky/Ohio Valley Focus - FIXED LINKS)
-            // 1. FIXED: Using stable 'lite' version of Wilmington, OH Radar loop.
-            { url: 'https://radar.weather.gov/lite/OHX_loop.gif', title: 'Local NWS Radar (OHX)' }, 
-            // 2. FIXED: Using day-specific WPC temp forecast for stability.
-            { url: 'https://www.wpc.ncep.noaa.gov/basicwx/temp/ohiov_max_min_day1.gif', title: 'Ohio Valley Max/Min Temp' }, 
-            // 3. FIXED: Reverting to highly stable CONUS IR Satellite (high res local is too volatile).
-            { url: 'https://cdn.star.nesdis.noaa.gov/GOES16/ABI/SECTOR/conus/13/latest.jpg', title: 'CONUS IR Satellite' }, 
-            // 4. FIXED: Using explicit filename for the Categorical Outlook.
-            { url: 'https://www.spc.noaa.gov/products/outlook/day1otlk_cat.gif', title: 'SPC Severe Risk' }, 
+                // Default contentData (used unless you override in Dashboard.html)
+                const contentData = [
+    { "url": "https://radar.weather.gov/ridge/standard/CONUS-LARGE_loop.gif", "title": "CONUS Radar (Large)" },
+    { "url": "https://graphical.weather.gov/images/conus/T1_conus.png", "title": "CONUS Temperature" },
+    { "url": "https://meshmap.net/", "title": "MeshMap" },
+    { "url": "https://www.heavens-above.com/orbitdisplay.aspx?icon=iss&width=600&height=300&mode=M&satid=25544", "title": "ISS Tracker" },
+    { "url": "https://prop.kc2g.com/renders/current/mufd-normal-now.svg", "title": "MUF Day Normal" },
+    { "url": "https://www.wpc.ncep.noaa.gov/noaa/noaad2.gif?1766870046", "title": "Forecast Charts" },
+    { "url": "https://services.swpc.noaa.gov/experimental/images/aurora_dashboard/tonights_static_viewline_forecast.png", "title": "Aurora Forecast" },
+    { "url": "https://images.lightningmaps.org/blitzortung/america/index.php?animation=usa", "title": "USA Lightning Map" },
+    { "url": "https://www.trimarc.org/images/milestone/CCTV_06_275_0089.jpg", "title": "Traffic Cam" },
+    { "url": "https://cdn.star.nesdis.noaa.gov/GOES16/ABI/SECTOR/can/13/GOES16-CAN-13-1125x560.gif", "title": "CONUS IR Satellite" },
+    { "url": "https://www.timeanddate.com/scripts/sunmap.php?iso=now", "title": "Sun/Darkness Map" },
+    { "url": "https://www.hamqsl.com/solar101vhfpic.php", "title": "Solar Data" }
+];
 
-            // Row 2: Propagation & Solar (Global/Continental - Already stable)
-            { url: 'https://services.swpc.noaa.gov/images/animations/d-rap/global/d-rap/latest.png', title: 'D-Region Absorption' }, 
-            { url: 'https://www.hamqsl.com/solarpic.php', title: 'Solar Data (N0NBH)' }, 
-            { url: 'https://www.hamqsl.com/solarvhf.php', title: 'VHF Conditions' }, 
-            { url: 'https://services.swpc.noaa.gov/experimental/images/aurora_dashboard/tonights_static_viewline_forecast.png', title: 'Aurora Forecast' }, 
-
-            // Row 3: Utility (Unchanged/Local)
-            { url: 'https://images.lightningmaps.org/blitzortung/america/index.php?animation=usa', title: 'USA Lightning Map' }, 
-            { url: 'https://www.trimarc.org/images/milestone/CCTV_06_275_0089.jpg', title: 'Louisville Traffic Cam' }, 
-            { url: 'https://www.timeanddate.com/scripts/sunmap.php?iso=now', title: 'Sun/Darkness Map' }, 
-            { url: 'https://www.heavens-above.com/orbitdisplay.aspx?icon=iss&width=600&height=300&mode=M&satid=25544', title: 'ISS Tracker' } 
-        ];
-
-        /* 1. GRID BUILDER */
-        function getContentType(url) {
-            const lowerUrl = url.toLowerCase();
-            if (lowerUrl.endsWith('.mp4')) return 'video';
-            if (lowerUrl.includes('solarpic') || lowerUrl.includes('solarvhf')) return 'img';
-            if (lowerUrl.includes('sunmap') || lowerUrl.includes('orbitdisplay') || lowerUrl.endsWith('.svg')) return 'img';
-            if (lowerUrl.includes('lightningmaps')) return 'img';
-            return 'img'; 
+        /* GRID BUILDER */
+        function getContentType(url){
+            const u = url.toLowerCase();
+            if (u.endsWith('.mp4')) return 'video';
+            // Known hosts that return image content despite lacking an image extension
+            if (u.includes('hamqsl') || u.includes('solarpic') || u.includes('solarvhf') || u.includes('orbitdisplay') || u.includes('sunmap') || u.includes('lightningmaps')) return 'img';
+            // Try embedding meshmap in-tile; if framing blocked we'll show an Open link
+            if (u.includes('meshmap.net')) return 'embed';
+            if (u.match(/\.(jpg|jpeg|png|gif|svg|bmp)(\?.*)?$/)) return 'img';
+            return 'link';
         }
 
-        function buildGrid() {
-            const gridContainer = document.getElementById('grid-container');
-            gridContainer.innerHTML = '';
-            
+        function buildGrid(){
+            const grid = document.getElementById('grid-container'); grid.innerHTML = '';
             contentData.forEach(item => {
-                const url = item.url;
-                const contentType = getContentType(url);
-
-                const gridItem = document.createElement('div');
-                gridItem.classList.add('grid-item');
-                
-                const imageContainer = document.createElement('div');
-                imageContainer.classList.add('image-container');
-
-                gridItem.onclick = function() { openLightbox(url, contentType); };
-
+                const gi = document.createElement('div'); gi.className = 'grid-item';
+                const c = document.createElement('div'); c.className = 'image-container';
+                const type = getContentType(item.url);
                 let el;
-                if (contentType === 'video') {
-                    el = document.createElement('video');
-                    el.src = url;
-                    el.autoplay = true; el.loop = true; el.muted = true; el.controls = false;
+                if(type === 'video'){
+                    el = document.createElement('video'); el.src = item.url; el.autoplay = true; el.loop = true; el.muted = true;
+                } else if (type === 'embed'){
+                    // Attempt to embed meshmap directly inside the tile via iframe
+                    el = document.createElement('iframe');
+                    el.style.cssText = 'width:100%;height:100%;border:0';
+                    el.src = item.url;
+                    // If embedding is blocked, replace the iframe with a link placeholder
+                    const fallbackReplace = () => {
+                        const placeholder = document.createElement('div'); placeholder.className='link-placeholder'; placeholder.textContent = item.title || 'Open Site';
+                        placeholder.onclick = () => window.open(item.url, '_blank');
+                        c.innerHTML = ''; c.appendChild(placeholder);
+                        gi.onclick = null;
+                    };
+                    // If iframe load fails or doesn't render useful content within 2.5s, show open-in-new-tab placeholder
+                    const timeout = setTimeout(()=>{
+                        try{
+                            // try to access contentDocument - will throw on cross-origin (assume OK)
+                            if(!el.contentDocument || !el.contentDocument.body || el.contentDocument.body.childNodes.length===0){
+                                fallbackReplace();
+                            }
+                        }catch(e){
+                            // cross-origin access denied -> likely loaded fine, don't replace
+                        }
+                    }, 2500);
+                    el.onload = ()=>{ clearTimeout(timeout); };
+                } else if (type === 'link'){
+                    el = document.createElement('div'); el.className = 'link-placeholder'; el.textContent = item.title || 'Open Link';
                 } else {
-                    el = document.createElement('img');
-                    el.setAttribute('data-base-src', url);
-                    
-                    // Add timestamp to force load
-                    el.src = url + (url.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
-                    el.referrerPolicy = "no-referrer";
-                    
-                    // Add contain-fit to specific banners
-                    if(url.includes('hamqsl') || url.includes('orbitdisplay') || url.includes('grayline') || url.includes('wpc.ncep.noaa.gov') || url.includes('spc.noaa.gov')) {
-                        el.classList.add('contain-fit');
-                    }
-                    el.onerror = function() { 
-                        this.style.display='none';
-                        this.parentElement.innerHTML += '<div style="color:#666; display:flex; justify-content:center; align-items:center; height:100%;">Image Unavailable</div>';
-                    }; 
+                    el = document.createElement('img'); el.setAttribute('data-base-src', item.url); el.referrerPolicy = 'no-referrer';
+                    if(item.url.includes('hamqsl')||item.url.includes('orbitdisplay')||item.url.includes('wpc.ncep.noaa.gov')||item.url.includes('spc.noaa.gov')||item.url.includes('lightningmaps')) el.classList.add('contain-fit');
+                    el.src = item.url + (item.url.includes('?')? '&':'?') + 't=' + Date.now();
+                    el.onerror = function(){ this.style.display='none'; if(!c.querySelector('.image-unavailable-msg')){ const d=document.createElement('div'); d.className='image-unavailable-msg'; d.style.cssText='color:#666;display:flex;align-items:center;justify-content:center;height:100%'; d.innerText='Image Unavailable'; c.appendChild(d); } }
                 }
-                
-                imageContainer.appendChild(el);
-                if (item.title) {
-                    const titleSpan = document.createElement('span');
-                    titleSpan.classList.add('image-title');
-                    titleSpan.innerText = item.title;
-                    imageContainer.appendChild(titleSpan);
+                c.appendChild(el);
+                // Wire click handlers according to type
+                if (type === 'embed'){
+                    // clicking iframe tile should attempt focus/open nothing; provide an overlay click to open in new tab
+                    gi.onclick = ()=>{ window.open(item.url, '_blank'); };
+                } else if (type === 'link'){
+                    gi.onclick = ()=>window.open(item.url, '_blank');
+                } else {
+                    gi.onclick = ()=>openLightbox(item.url, getContentType(item.url));
                 }
-                gridItem.appendChild(imageContainer);
-                gridContainer.appendChild(gridItem);
+                if(item.title){ const t=document.createElement('span'); t.className='image-title'; t.innerText = item.title; c.appendChild(t); }
+                gi.appendChild(c);
+                grid.appendChild(gi);
             });
         }
 
-        /* 2. IMAGE REFRESHER */
-        function refreshImages() {
-            document.querySelectorAll('#grid-container img').forEach(img => {
-                const url = img.getAttribute('data-base-src');
-                if (url) {
-                    img.src = url + (url.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
-                }
-            });
-        }
+        function refreshImages(){ document.querySelectorAll('#grid-container img').forEach(img=>{ const u = img.getAttribute('data-base-src'); if(u) img.src = u + (u.includes('?')? '&':'?') + 't=' + Date.now(); }); }
 
-        /* 3. LIGHTBOX */
-        function openLightbox(url, type) {
-            const lightbox = document.getElementById('lightbox');
-            const imgEl = document.getElementById('lightbox-img');
-            const videoEl = document.getElementById('lightbox-video');
+        function openLightbox(url,type){
+            const lb = document.getElementById('lightbox');
+            const img = document.getElementById('lightbox-img');
+            const vid = document.getElementById('lightbox-video');
+            // remove any previously injected iframe
+            const prev = document.getElementById('lightbox-injected-iframe');
+            if(prev) prev.remove();
 
-            imgEl.style.display = 'none'; videoEl.style.display = 'none'; videoEl.pause();
+            img.style.display='none'; vid.style.display='none'; vid.pause();
 
-            if (type === 'video') {
-                videoEl.src = url; videoEl.style.display = 'block'; videoEl.play();
-            } else {
-                imgEl.src = url + (url.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
-                imgEl.style.display = 'block';
+            if(type==='video'){
+                vid.src=url; vid.style.display='block'; vid.play();
+                lb.style.display='flex';
+                return;
             }
-            lightbox.style.display = 'flex';
-        }
 
-        function closeLightbox() {
-            document.getElementById('lightbox').style.display = 'none';
-            document.getElementById('lightbox-video').pause();
-        }
-
-        /* 4. WEATHER TICKER (NWS) */
-        const WMO_CODES = {
-            0:"Clear", 1:"Mainly Clear", 2:"Partly Cloudy", 3:"Overcast", 45:"Fog", 48:"Rime Fog",
-            51:"Light Drizzle", 53:"Mod Drizzle", 55:"Dense Drizzle", 61:"Light Rain", 63:"Mod Rain", 65:"Heavy Rain",
-            71:"Light Snow", 73:"Mod Snow", 75:"Heavy Snow", 80:"Light Showers", 81:"Mod Showers", 82:"Violent Showers",
-            95:"Thunderstorm", 96:"Thunderstorm+Hail", 99:"Heavy T-Storm+Hail"
-        };
-        const WEATHER_API_URL = `https://api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}&current=temperature_2m,weather_code,wind_speed_10m&hourly=precipitation_probability&forecast_hours=1&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FNew_York`;
-
-        // Fetch active NWS alerts for the point; fallback to local /proxy if direct fetch fails
-        async function updateAlerts() {
-            const alertsUrl = `https://api.weather.gov/alerts/active?point=${LATITUDE},${LONGITUDE}`;
-            const titleEl = document.getElementById('ticker-title');
-            try {
-                const resp = await fetch(alertsUrl, { headers: { 'Accept': 'application/geo+json' } });
-                if (!resp.ok) throw new Error('NWS fetch failed');
-                const data = await resp.json();
-                const alerts = data.features || [];
-                if (alerts.length === 0) {
-                    alertsText = '';
-                    titleEl.style.backgroundColor = 'rgba(0, 0, 0, 0.75)';
-                    return;
-                }
-                const parts = alerts.slice(0,2).map(a => {
-                    const p = a.properties || {};
-                    const ev = p.event || 'Alert';
-                    const sev = p.severity || '';
-                    const area = (p.areaDesc || '').replace(/\s+/g, ' ');
-                    const onset = p.effective ? new Date(p.effective).toLocaleTimeString() : '';
-                    const ends = p.ends ? new Date(p.ends).toLocaleTimeString() : '';
-                    return `${ev}${sev ? ' ('+sev+')' : ''} ${area}${onset ? ' @'+onset : ''}${ends ? '→'+ends : ''}`.trim();
-                });
-                alertsText = ' | ALERTS: ' + parts.join(' || ');
-                titleEl.style.backgroundColor = '#b00';
-            } catch (e) {
-                // Try proxy fallback if available
-                try {
-                    const proxyUrl = '/proxy?url=' + encodeURIComponent(alertsUrl);
-                    const resp2 = await fetch(proxyUrl);
-                    if (!resp2.ok) throw new Error('Proxy fetch failed');
-                    const data2 = await resp2.json();
-                    const alerts = data2.features || [];
-                    if (alerts.length === 0) {
-                        alertsText = '';
-                        titleEl.style.backgroundColor = 'rgba(0, 0, 0, 0.75)';
-                        return;
+            if(type==='try-embed'){
+                // attempt to embed in an iframe; if blocked, fall back to opening a new tab
+                const iframe = document.createElement('iframe');
+                iframe.id = 'lightbox-injected-iframe';
+                iframe.style.cssText = 'border:0;width:90%;height:80%';
+                iframe.src = url;
+                iframe.onload = function(){ img.style.display='none'; vid.style.display='none'; iframe.style.display='block'; lb.style.display='flex'; };
+                // fallback if iframe doesn't load within 2.5s (likely blocked)
+                const fallback = setTimeout(()=>{
+                    if(!iframe.contentDocument || iframe.contentDocument.location.href === 'about:blank'){
+                        iframe.remove();
+                        window.open(url, '_blank');
                     }
-                    const parts = alerts.slice(0,2).map(a => {
-                        const p = a.properties || {};
-                        const ev = p.event || 'Alert';
-                        const sev = p.severity || '';
-                        const area = (p.areaDesc || '').replace(/\s+/g, ' ');
-                        const onset = p.effective ? new Date(p.effective).toLocaleTimeString() : '';
-                        const ends = p.ends ? new Date(p.ends).toLocaleTimeString() : '';
-                        return `${ev}${sev ? ' ('+sev+')' : ''} ${area}${onset ? ' @'+onset : ''}${ends ? '→'+ends : ''}`.trim();
-                    });
-                    alertsText = ' | ALERTS: ' + parts.join(' || ');
-                    titleEl.style.backgroundColor = '#b00';
-                } catch (e2) {
-                    alertsText = '';
-                    titleEl.style.backgroundColor = 'rgba(0, 0, 0, 0.75)';
-                }
+                }, 2500);
+                iframe.onerror = function(){ clearTimeout(fallback); iframe.remove(); window.open(url, '_blank'); };
+                // append and wait for onload or fallback
+                lb.appendChild(iframe);
+                return;
+            }
+
+            // default: show as image
+            img.src = url + (url.includes('?')? '&':'?') + 't=' + Date.now(); img.style.display='block';
+            lb.style.display='flex';
+        }
+        function closeLightbox(){ const lb = document.getElementById('lightbox'); lb.style.display='none'; const vid = document.getElementById('lightbox-video'); vid.pause(); const injected = document.getElementById('lightbox-injected-iframe'); if(injected) injected.remove(); }
+
+        // WEATHER TICKER (open-meteo)
+        const WMO_CODES = {0:"Clear",1:"Mainly Clear",2:"Partly Cloudy",3:"Overcast",45:"Fog",48:"Rime Fog",51:"Light Drizzle",61:"Light Rain",80:"Light Showers",95:"Thunderstorm"};
+        const WEATHER_API_URL = `https://api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}&current=temperature_2m,weather_code,wind_speed_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FNew_York`;
+        async function updateTicker(){
+            const t = document.getElementById('ticker-inner');
+            try{
+                const r = await fetch(WEATHER_API_URL);
+                if(!r.ok) throw 0;
+                const d = await r.json();
+                const cur = d.current||{};
+                const desc = WMO_CODES[cur.weather_code]||'Unknown';
+                t.innerText = `[Boone County, KY] ${new Date().toLocaleTimeString()} | ${Math.round(cur.temperature_2m||0)}°F | ${Math.round(cur.wind_speed_10m||0)} mph | ${desc}` + (alertsText||'');
+            }catch(e){
+                t.innerText = 'Weather Data Unavailable' + (alertsText||'');
             }
         }
 
-        async function updateTicker() {
-            const ticker = document.getElementById('ticker-move');
-            try {
-                const response = await fetch(WEATHER_API_URL);
-                if (!response.ok) throw new Error("API Error");
-                const data = await response.json();
-                
-                const cur = data.current;
-                const desc = WMO_CODES[cur.weather_code] || "Unknown";
-                const rain = data.hourly?.precipitation_probability?.[0] || 0;
-                ticker.innerText = `[Boone County, KY] ${new Date().toLocaleTimeString()} | Temp: ${Math.round(cur.temperature_2m)}°F | Wind: ${Math.round(cur.wind_speed_10m)} mph | ${desc} | Rain: ${rain}%` + alertsText;
-            } catch (error) {
-                ticker.innerText = "Weather Data Unavailable (Check Network)";
-            }
-        }
-
-        /* 5. GEMINI ANALYST */
-        function showGeminiModal() {
-            document.getElementById('gemini-modal').style.display = 'block';
-            document.getElementById('gemini-modal-content').innerHTML = '<h3 style="text-align:center; color:#ff9800;">Analyzing...</h3>';
-            callGeminiPropagationAnalysis();
-        }
-        function closeGeminiModal() { document.getElementById('gemini-modal').style.display = 'none'; }
-
-        async function callGeminiPropagationAnalysis(retry=0) {
-            const prompt = `Act as an expert amateur radio tactical propagation analyst. Summarize current solar/geomagnetic conditions (SFI, K-Index) and provide band recommendations for Northern Kentucky, using Boone County, KY as the reference point.`;
-            const payload = { contents: [{ parts: [{ text: prompt }] }], config: { tools: [{ "google_search": {} }] } };
-            
-            try {
-                const response = await fetch(API_URL, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
-                if (!response.ok && retry < 3) return setTimeout(() => callGeminiPropagationAnalysis(retry+1), 2000);
-                
-                const data = await response.json();
-                const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "No analysis available. Please ensure your API key is valid.";
-                
-                let html = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
-                document.getElementById('gemini-modal-content').innerHTML = html;
-            } catch (e) {
-                document.getElementById('gemini-modal-content').innerHTML = "Error communicating with the Gemini API. Check your network or API Key.";
-            }
+        // Alerts (silent fail for file://)
+        async function updateAlerts(){
+            try{
+                const resp = await fetch(`https://api.weather.gov/alerts/active?point=${LATITUDE},${LONGITUDE}`,{headers:{'Accept':'application/geo+json'}});
+                if(!resp.ok) throw 0;
+                const d = await resp.json();
+                const alerts = d.features||[];
+                if(!alerts.length){ alertsText=' | No Alerts'; return; }
+                alertsText = ' | ALERTS: ' + alerts.slice(0,2).map(a=>a.properties?.event||'Alert').join(' || ');
+            }catch(e){ alertsText=' | No Alerts'; }
         }
 
         /* INIT */
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async ()=>{
             buildGrid();
             refreshImages();
             setInterval(refreshImages, IMAGE_REFRESH_RATE_MS);
+            // Await alerts so ticker includes alert text immediately
+            await updateAlerts();
             updateTicker();
-            setInterval(updateTicker, 900000);
-
-            // Alerts: update immediately and periodically
-            updateAlerts();
+            setInterval(updateTicker, IMAGE_REFRESH_RATE_MS);
             setInterval(updateAlerts, ALERTS_REFRESH_MS);
         });
     </script>
