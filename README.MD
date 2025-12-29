@@ -1,53 +1,53 @@
-## 📻 MyHamRadioDashboard
+# 📻 MyHamDashboard: Your Personal Shack Command Center
 
-### The "Shack-in-a-Browser" Display for the Modern Operator
+**Keep your eyes on the hobby, not the code.** `MyHamDashboard` is a lightweight, single-file "cockpit" for Ham and GMRS operators. No servers, no complex dependencies, and zero overhead—just double-click and get back to the bands. 📡
 
-Welcome, ragchewers and net controllers!\! Sometimes you want to check propagation conditions, local radar, and solar wind without firing up 15 different browser tabs or buying another Raspberry Pi that you'll definitely configure "someday."
+---
 
-This is a lightweight, single-file HTML dashboard designed to run locally on your machine. It puts the "control" in Mission Control, and ready to be forked for your own QTH.
+### 🚀 The "Quick Start"
+1.  **Download** the repository.
+2.  **Double-click** `Dashboard.html` to open it in your favorite browser.
+3.  **Configure** your shack via the **Menu → Settings** lightbox.
+4.  **Stay Informed** with a persistent dashboard that lives entirely on your machine.
 
-----
+---
 
-### 📡 Features (The "Specs")
+### 🛠 Recent Signal Reports (Changelog)
+*   **The Grid:** Editable `contentData` tiles in a 4x3 layout with cache-busted refreshing to keep data current.
+*   **"Cyclops" Camera Engine:** Rotate multiple camera URLs (weather cams, shack cams, or repeater sites) inside a single tile on a configurable timer.
+*   **On-the-Fly Settings:** A sleek lightbox editor for tiles, menu links, coordinates, and refresh intervals. Everything saves to `localStorage` (`mhd_settings`).
+*   **The Ticker:** A slower, "easy-on-the-eyes" scrolling ticker with live NWS alerts appended automatically.
+*   **Contact Logging:** Added `contacts.html`—a snappy GMRS logger (City/State) powered by IndexedDB with a one-click SQLite export for your records.
 
-  * **The 4x3 Grid of Glory:** Displays 12 monitored frequencies... err, images, perfectly sized to your screen. No scrolling required (unless you want to).
-  * **Forced Refresh:** All images and maps in the grid are automatically **refreshed every 10 minutes** using cache-busting techniques, ensuring you always see the latest radar loop or space weather conditions.
-  * **Zero-Install Deployment:** No Docker containers, no npm install, no compiling kernels. Just download the HTML file and double-click it like it's 1999.
-  * **The Stealth Menu:** A stealthy menu button integrated into the ticker bar with helpful ham links, including **HamStudy.org**.
-  * **The Ticker of Truth:** A transparent, floating ticker at the bottom that pulls live local weather (temp, wind, chance of rain) based on your set latitude/longitude.
+---
 
-----
+### 🛰 Why Local-First?
+In the spirit of emergency preparedness, this dashboard doesn't need a cloud to rain on your parade. It runs directly from your filesystem.
+*   **Portable:** Throw it on a thumb drive and take it to Field Day.
+*   **Private:** Your data stays on your machine, not a third-party server.
+*   **Serverless:** If you can double-click a file, you're "on the air." No `npm install` required.
 
-### 🔧 Customization cheat sheet (aka the knobs you’ll actually use)
-- Change tiles: edit the `contentData` array near the top of `Dashboard.html` — it's a plain JS array of `{ url, title }` objects.
-- Location for ticker: edit `LATITUDE` and `LONGITUDE` in `Dashboard.html` to point to your QTH.
-- Refresh intervals: edit `IMAGE_REFRESH_RATE_MS` and `ALERTS_REFRESH_MS` (defaults are 600000 ms = 10 minutes).
-- MeshMap / embedded pages: the dashboard tries to iframe sites like MeshMap but will fall back to opening a new tab if framing is blocked.
+---
 
------
+### 📦 The Manifest
+*   **`Dashboard.html`** – The brains: 4x3 grid, scrolling ticker, settings engine, and camera rotator.
+*   **`contacts.html`** – Your digital logbook for GMRS contacts (City/State) with local storage.
 
-### Troubleshooting quick hits
-- If a tile shows "Image Unavailable": open DevTools → Network and inspect the request. Many map portals return HTML (not an image) or block hotlinking.
-- If a page refuses to embed: you’ll see an empty iframe or browser console X-Frame-Options/CSP error — fallback opens the site in a new tab.
-- Want automatic detection of failing tiles? Tell me and I’ll add a small JS logger to capture failing URLs.
+---
 
------
+### ⚠️ Signal Report (Notes & Limitations)
+*   **QRM (Interference):** Some sites block embedding via `X-Frame-Options`. If a tile won't load, the dashboard will gracefully pop it into a new tab for you.
+*   **File Permissions:** Running via `file://` can occasionally block remote fetches (like NWS alerts) in hyper-secure browsers. Most features work out of the box.
 
-### Notes for the distro and other copilots
-- The central edit points are `contentData`, `LATITUDE`/`LONGITUDE`, and `IMAGE_REFRESH_RATE_MS`/`ALERTS_REFRESH_MS` in `Dashboard.html`.
+---
 
------
+### 🤝 Credits & Acknowledgments
+*   **Inspiration:** Huge thanks to **VA3HDL/hamdashboard** for the brilliant original concept. 
+*   **The Rewrite:** This version is a ground-up rework focusing on UI fluidity, camera rotations, and a "no-code" settings editor for easier customization.
 
-### 🤝 Credit & Acknowledgments
-
-My idea for this Dashboard came from VA3HDL/hamdashboard.
-
-I just rewrote the code with the help of Copilot in VSCode to make this Dashboard the way I like it, local, and ready for the shack now!
-
------
+---
 
 ### 📜 License
+Tinker freely! This is open-source for the radio community. Just remember: **Keep it clean on the air and in the code.**
 
-Feel free to fork it, mod it, break it, and fix it. Just don't broadcast spurious emissions.
-
-73s
+73s — See you on the waterfall! 🎙️✨

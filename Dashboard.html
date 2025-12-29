@@ -52,7 +52,7 @@
         #ticker-title:hover .dropdown-content { display:block }
         /* Scrolling feed constrained to remaining space */
         #ticker-move { flex:1 1 auto; overflow:hidden; height:100%; display:flex; align-items:center }
-        #ticker-inner { display:inline-block; padding-left:100%; white-space:nowrap; animation:scroll-left 30s linear infinite; color:#fff; }
+        #ticker-inner { display:inline-block; min-width:100%; padding-left:100%; white-space:nowrap; animation:scroll-left 60s linear infinite; color:#fff; }
         @keyframes scroll-left { 0%{transform:translateX(0)} 100%{transform:translateX(-100%)} }
 
         /* LIGHTBOX */
@@ -67,15 +67,8 @@
 
         <div id="ticker-wrap">
             <div id="ticker-title">▾ Menu
-                <div class="dropdown-content">
-                    <a href="https://hamstudy.org/" target="_blank">HamStudy.org</a>
-                    <a href="https://www.weather.gov/" target="_blank">NWS Home</a>
-                    <a href="https://ohgo.com/cincinnati?lt=39.17072157631222&ln=-84.47758421160262&z=10&ls=incident,dangerous-slowdown,construction,camera" target="_blank">Cameras</a>
-                    <a href="https://mygmrs.com/" target="_blank">MyGMRS</a>
-                    <a href="https://www.qrz.com/" target="_blank">QRZ.com</a>
-                    <a href="http://websdr.org/" target="_blank">WebSDR</a>
-                    <a href="https://www.radioreference.com/db/browse/stid/21" target="_blank">RadioReference KY</a>
-                    <a href="javascript:location.reload()">Refresh Dashboard</a>
+                <div class="dropdown-content" id="dropdown-content">
+                    <!-- menu items rendered by JS -->
                 </div>
             </div>
             <div id="ticker-move"><div id="ticker-inner">Loading Weather Data...</div></div>
@@ -86,18 +79,37 @@
         <div id="lightbox-close">&times;</div>
         <img id="lightbox-img" class="lightbox-content-style" style="display:none" />
         <video id="lightbox-video" class="lightbox-content-style" style="display:none" controls autoplay loop></video>
+        <div id="lightbox-settings" class="lightbox-content-style" style="display:none; max-width:900px; overflow:auto; padding:12px; background:rgba(10,10,10,0.95); border-radius:6px; color:#eee"></div>
     </div>
 
     <script>
         // --- CONFIG ---
-        const LATITUDE = 38.98;
-        const LONGITUDE = -84.77;
-        const IMAGE_REFRESH_RATE_MS = 600000; // 10 minutes
-        const ALERTS_REFRESH_MS = 600000; // 10 minutes
+        let LATITUDE = 38.98;
+        let LONGITUDE = -84.77;
+        let IMAGE_REFRESH_RATE_MS = 600000; // 10 minutes
+        let ALERTS_REFRESH_MS = 600000; // 10 minutes
         let alertsText = '';
+        let refreshIntervalId, tickerIntervalId, alertsIntervalId;
+
+        // Camera rotation defaults: rotate tileIndex 8 (Traffic Cam) through several camera images every 2 minutes
+        let cameraRotations = [
+            {
+                tileIndex: 8,
+                urls: [
+                    'https://itscameras.dot.state.oh.us/images/artimis/CCTV_I-71-Gilbert.jpg?date=1766935079000',
+                    'https://www.trimarc.org/images/milestone/CCTV_06_275_0089.jpg',
+                    'https://www.trimarc.org/images/milestone/CCTV_06_75_1908.jpg?date=1766935020000',
+                    'https://www.trimarc.org/images/milestone/CCTV_06_75_1847.jpg?date=1766935262000',
+                    'https://itscameras.dot.state.oh.us/images/artimis/CCTV4002.jpg?date=1766935262000'
+                ],
+                intervalMs: 120000,
+                currentIndex: 0
+            }
+        ];
+        let cameraRotationIntervals = [];
 
                 // Default contentData (used unless you override in Dashboard.html)
-                const contentData = [
+                let contentData = [
     { "url": "https://radar.weather.gov/ridge/standard/CONUS-LARGE_loop.gif", "title": "CONUS Radar (Large)" },
     { "url": "https://graphical.weather.gov/images/conus/T1_conus.png", "title": "CONUS Temperature" },
     { "url": "https://meshmap.net/", "title": "MeshMap" },
@@ -111,6 +123,20 @@
     { "url": "https://www.timeanddate.com/scripts/sunmap.php?iso=now", "title": "Sun/Darkness Map" },
     { "url": "https://www.hamqsl.com/solar101vhfpic.php", "title": "Solar Data" }
 ];
+
+        // Default menu links editable via Settings (these are the user-editable links; Refresh and Settings remain fixed)
+        let menuData = [
+            { url: 'https://hamstudy.org/', title: 'HamStudy.org' },
+            { url: 'contacts.html', title: 'GMRS Contacts' },
+            { url: 'https://www.weather.gov/', title: 'NWS Home' },
+            { url: 'https://ohgo.com/cincinnati?lt=39.17072157631222&ln=-84.47758421160262&z=10&ls=incident,dangerous-slowdown,construction,camera', title: 'Cameras' },
+            { url: 'https://cincygmrs.com/', title: 'Blog' },
+            { url: 'https://cincinnatigmrs.ddns.net/', title: 'Forum' },
+            { url: 'https://mygmrs.com/', title: 'MyGMRS' },
+            { url: 'https://www.qrz.com/', title: 'QRZ.com' },
+            { url: 'http://websdr.org/', title: 'WebSDR' },
+            { url: 'https://www.radioreference.com/db/browse/stid/21', title: 'RadioReference KY' }
+        ];
 
         /* GRID BUILDER */
         function getContentType(url){
@@ -183,15 +209,59 @@
 
         function refreshImages(){ document.querySelectorAll('#grid-container img').forEach(img=>{ const u = img.getAttribute('data-base-src'); if(u) img.src = u + (u.includes('?')? '&':'?') + 't=' + Date.now(); }); }
 
+        // Camera rotation engine: start/stop rotation intervals and update tiles
+        function stopCameraRotations(){ cameraRotationIntervals.forEach(id=>clearInterval(id)); cameraRotationIntervals = []; }
+        function startCameraRotations(){
+            stopCameraRotations();
+            cameraRotations.forEach((rot)=>{
+                if(!rot || !Array.isArray(rot.urls) || rot.urls.length===0) return;
+                // Ensure tile exists
+                if(typeof rot.tileIndex !== 'number' || rot.tileIndex < 0 || rot.tileIndex >= contentData.length) return;
+                // Apply initial url
+                rot.currentIndex = rot.currentIndex || 0;
+                contentData[rot.tileIndex].url = rot.urls[rot.currentIndex % rot.urls.length];
+                // Create interval to step through urls
+                const id = setInterval(()=>{
+                    rot.currentIndex = ((rot.currentIndex||0) + 1) % rot.urls.length;
+                    if(contentData[rot.tileIndex]){
+                        contentData[rot.tileIndex].url = rot.urls[rot.currentIndex];
+                        buildGrid();
+                        refreshImages();
+                    }
+                }, rot.intervalMs || 120000);
+                cameraRotationIntervals.push(id);
+            });
+        }
+
+        // Menu rendering
+        function renderMenu(){
+            const container = document.getElementById('dropdown-content'); if(!container) return;
+            container.innerHTML = '';
+            // user links
+            menuData.forEach(item=>{
+                const a = document.createElement('a'); a.href = item.url; a.target = '_blank'; a.innerText = item.title || item.url; container.appendChild(a);
+            });
+            // fixed actions: Refresh, Settings
+            const ref = document.createElement('a'); ref.href = 'javascript:location.reload()'; ref.innerText = 'Refresh Dashboard'; container.appendChild(ref);
+            const sett = document.createElement('a'); sett.href = 'javascript:void(0)'; sett.onclick = openSettings; sett.innerText = 'Settings'; container.appendChild(sett);
+        }
+
         function openLightbox(url,type){
             const lb = document.getElementById('lightbox');
             const img = document.getElementById('lightbox-img');
             const vid = document.getElementById('lightbox-video');
+            const settingsPanel = document.getElementById('lightbox-settings');
             // remove any previously injected iframe
             const prev = document.getElementById('lightbox-injected-iframe');
             if(prev) prev.remove();
 
             img.style.display='none'; vid.style.display='none'; vid.pause();
+
+            if(type==='settings'){
+                if(settingsPanel){ settingsPanel.style.display='block'; }
+                lb.style.display='flex';
+                return;
+            }
 
             if(type==='video'){
                 vid.src=url; vid.style.display='block'; vid.play();
@@ -223,15 +293,23 @@
             img.src = url + (url.includes('?')? '&':'?') + 't=' + Date.now(); img.style.display='block';
             lb.style.display='flex';
         }
-        function closeLightbox(){ const lb = document.getElementById('lightbox'); lb.style.display='none'; const vid = document.getElementById('lightbox-video'); vid.pause(); const injected = document.getElementById('lightbox-injected-iframe'); if(injected) injected.remove(); }
+        function closeLightbox(){
+            const lb = document.getElementById('lightbox');
+            lb.style.display='none';
+            const vid = document.getElementById('lightbox-video'); if(vid) vid.pause();
+            const injected = document.getElementById('lightbox-injected-iframe'); if(injected) injected.remove();
+            const settingsPanel = document.getElementById('lightbox-settings'); if(settingsPanel){ settingsPanel.style.display='none'; /*clear content*/ settingsPanel.innerHTML = ''; }
+        }
 
         // WEATHER TICKER (open-meteo)
         const WMO_CODES = {0:"Clear",1:"Mainly Clear",2:"Partly Cloudy",3:"Overcast",45:"Fog",48:"Rime Fog",51:"Light Drizzle",61:"Light Rain",80:"Light Showers",95:"Thunderstorm"};
-        const WEATHER_API_URL = `https://api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}&current=temperature_2m,weather_code,wind_speed_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FNew_York`;
+        function getWeatherUrl(){
+            return `https://api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}&current=temperature_2m,weather_code,wind_speed_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FNew_York`;
+        }
         async function updateTicker(){
             const t = document.getElementById('ticker-inner');
             try{
-                const r = await fetch(WEATHER_API_URL);
+                const r = await fetch(getWeatherUrl());
                 if(!r.ok) throw 0;
                 const d = await r.json();
                 const cur = d.current||{};
@@ -254,16 +332,173 @@
             }catch(e){ alertsText=' | No Alerts'; }
         }
 
+        // Settings persistence and UI
+        function loadSettings(){
+            try{
+                const raw = localStorage.getItem('mhd_settings'); if(!raw) return;
+                const s = JSON.parse(raw);
+                if(typeof s.latitude === 'number') LATITUDE = s.latitude;
+                if(typeof s.longitude === 'number') LONGITUDE = s.longitude;
+                if(typeof s.imageRefreshMs === 'number') IMAGE_REFRESH_RATE_MS = s.imageRefreshMs;
+                if(typeof s.alertsRefreshMs === 'number') ALERTS_REFRESH_MS = s.alertsRefreshMs;
+                if(Array.isArray(s.contentData)) contentData = s.contentData;
+                if(Array.isArray(s.menuData)) menuData = s.menuData;
+            }catch(e){ console.warn('Failed to load settings', e); }
+        }
+        function saveSettingsToStorage(){
+            const s = { latitude: LATITUDE, longitude: LONGITUDE, imageRefreshMs: IMAGE_REFRESH_RATE_MS, alertsRefreshMs: ALERTS_REFRESH_MS, contentData: contentData, menuData: menuData, cameraRotations: cameraRotations };
+            localStorage.setItem('mhd_settings', JSON.stringify(s));
+        }
+        function openSettings(){
+            const panel = document.getElementById('lightbox-settings'); panel.innerHTML = '';
+            const form = document.createElement('div'); form.style.display='flex'; form.style.flexDirection='column'; form.style.gap='8px';
+            const makeField = (labelText, inputEl)=>{ const wrapper=document.createElement('div'); const label=document.createElement('div'); label.innerText=labelText; label.style.fontWeight='700'; label.style.marginBottom='4px'; wrapper.appendChild(label); wrapper.appendChild(inputEl); return wrapper; };
+
+            const lat = document.createElement('input'); lat.type='number'; lat.step='0.0001'; lat.value = LATITUDE; lat.style.width='220px';
+            const lon = document.createElement('input'); lon.type='number'; lon.step='0.0001'; lon.value = LONGITUDE; lon.style.width='220px';
+            const imgMs = document.createElement('input'); imgMs.type='number'; imgMs.value = IMAGE_REFRESH_RATE_MS; imgMs.style.width='220px';
+            const alertsMs = document.createElement('input'); alertsMs.type='number'; alertsMs.value = ALERTS_REFRESH_MS; alertsMs.style.width='220px';
+
+            // per-menu editor
+            const menuContainer = document.createElement('div'); menuContainer.style.display='flex'; menuContainer.style.flexDirection='column'; menuContainer.style.gap='6px'; menuContainer.style.marginBottom='10px';
+            const addMenuRow = (m)=>{
+                const row = document.createElement('div'); row.style.display='flex'; row.style.gap='8px'; row.style.alignItems='center';
+                const titleIn = document.createElement('input'); titleIn.type='text'; titleIn.placeholder='Label'; titleIn.style.width='180px'; titleIn.value = (m && m.title)? m.title : '';
+                const urlIn = document.createElement('input'); urlIn.type='text'; urlIn.placeholder='https://...'; urlIn.style.flex='1'; urlIn.value = (m && m.url)? m.url : '';
+                const rm = document.createElement('button'); rm.innerText='Remove'; rm.onclick = ()=>{ row.remove(); };
+                row.appendChild(titleIn); row.appendChild(urlIn); row.appendChild(rm);
+                menuContainer.appendChild(row);
+                return row;
+            };
+            (menuData||[]).forEach(m=>addMenuRow(m));
+            const addMenuBtn = document.createElement('button'); addMenuBtn.innerText='Add Menu Link'; addMenuBtn.onclick = ()=>addMenuRow();
+            form.appendChild(makeField('Menu Links (label + url)', (()=>{ const w=document.createElement('div'); w.appendChild(menuContainer); w.appendChild(addMenuBtn); return w; })()));
+
+            // Camera rotation editor
+            const cameraRotContainer = document.createElement('div'); cameraRotContainer.style.display='flex'; cameraRotContainer.style.flexDirection='column'; cameraRotContainer.style.gap='6px'; cameraRotContainer.style.marginBottom='10px';
+            const addCameraRotRow = (rot)=>{
+                const panel = document.createElement('div');
+                panel.style.border = '1px solid rgba(255,255,255,0.06)';
+                panel.style.padding = '10px';
+                panel.style.borderRadius = '6px';
+                panel.style.background = 'rgba(255,255,255,0.02)';
+                panel.style.display = 'flex';
+                panel.style.flexDirection = 'column';
+                panel.style.gap = '8px';
+
+                const row = document.createElement('div'); row.style.display='flex'; row.style.flexDirection='row'; row.style.gap='8px'; row.style.alignItems='center';
+                const tileIdx = document.createElement('input'); tileIdx.type='number'; tileIdx.placeholder='Tile index (0-based)'; tileIdx.style.width='120px'; tileIdx.value = (rot && typeof rot.tileIndex==='number')? rot.tileIndex : '';
+                const intervalIn = document.createElement('input'); intervalIn.type='number'; intervalIn.placeholder='Interval ms'; intervalIn.style.width='140px'; intervalIn.value = (rot && rot.intervalMs)? rot.intervalMs : 120000;
+                const rm = document.createElement('button'); rm.innerText='Remove'; rm.onclick = ()=>{ panel.remove(); };
+                row.appendChild(tileIdx); row.appendChild(intervalIn); row.appendChild(rm);
+
+                // URLs container: each URL gets its own input row
+                const urlsContainer = document.createElement('div'); urlsContainer.style.display='flex'; urlsContainer.style.flexDirection='column'; urlsContainer.style.gap='6px';
+                const addUrlRow = (u)=>{
+                    const r = document.createElement('div'); r.style.display='flex'; r.style.gap='8px'; r.style.alignItems='center';
+                    const inp = document.createElement('input'); inp.type='text'; inp.placeholder='https://...'; inp.style.flex='1'; inp.className = 'cam-url-input'; inp.value = u || '';
+                    const rem = document.createElement('button'); rem.innerText='Remove'; rem.onclick = ()=>{ r.remove(); };
+                    r.appendChild(inp); r.appendChild(rem);
+                    urlsContainer.appendChild(r);
+                    return r;
+                };
+                // populate initial URLs if provided
+                if(rot && Array.isArray(rot.urls)) rot.urls.forEach(u=>addUrlRow(u));
+                // add-url button
+                const addUrlBtn = document.createElement('button'); addUrlBtn.innerText = 'Add URL'; addUrlBtn.onclick = ()=>addUrlRow('');
+
+                panel.appendChild(row);
+                panel.appendChild(urlsContainer);
+                panel.appendChild(addUrlBtn);
+                cameraRotContainer.appendChild(panel);
+                return panel;
+            };
+            (cameraRotations||[]).forEach(r=>addCameraRotRow(r));
+            const addCamRotBtn = document.createElement('button'); addCamRotBtn.innerText='Add Camera Rotation'; addCamRotBtn.onclick = ()=>addCameraRotRow();
+            form.appendChild(makeField('Camera Rotations (tileIndex, interval, urls)', (()=>{ const w=document.createElement('div'); w.appendChild(cameraRotContainer); w.appendChild(addCamRotBtn); return w; })()));
+
+            // per-tile editor
+            const tilesContainer = document.createElement('div'); tilesContainer.style.display='flex'; tilesContainer.style.flexDirection='column'; tilesContainer.style.gap='6px';
+            const addTileRow = (tile)=>{
+                const row = document.createElement('div'); row.style.display='flex'; row.style.gap='8px'; row.style.alignItems='center';
+                const urlIn = document.createElement('input'); urlIn.type='text'; urlIn.placeholder='https://...'; urlIn.style.flex='1'; urlIn.value = (tile && tile.url) ? tile.url : '';
+                const titleIn = document.createElement('input'); titleIn.type='text'; titleIn.placeholder='Title'; titleIn.style.width='240px'; titleIn.value = (tile && tile.title) ? tile.title : '';
+                const rm = document.createElement('button'); rm.innerText='Remove'; rm.onclick = ()=>{ row.remove(); };
+                row.appendChild(urlIn); row.appendChild(titleIn); row.appendChild(rm);
+                tilesContainer.appendChild(row);
+                return row;
+            };
+            // populate rows from current contentData
+            (contentData||[]).forEach(t=>addTileRow(t));
+            const addBtn = document.createElement('button'); addBtn.innerText='Add Tile'; addBtn.onclick = ()=>addTileRow();
+            const tilesWrapper = document.createElement('div'); tilesWrapper.appendChild(tilesContainer); tilesWrapper.appendChild(addBtn);
+
+            form.appendChild(makeField('Latitude', lat)); form.appendChild(makeField('Longitude', lon));
+            form.appendChild(makeField('Image refresh (ms)', imgMs)); form.appendChild(makeField('Alerts refresh (ms)', alertsMs));
+            form.appendChild(makeField('Tiles (per-row editor)', tilesWrapper));
+            const btnRow = document.createElement('div'); btnRow.style.display='flex'; btnRow.style.gap='8px'; btnRow.style.marginTop='8px';
+            const saveBtn = document.createElement('button'); saveBtn.innerText='Save'; saveBtn.style.padding='8px 12px';
+            const cancelBtn = document.createElement('button'); cancelBtn.innerText='Cancel'; cancelBtn.style.padding='8px 12px';
+            const resetBtn = document.createElement('button'); resetBtn.innerText='Reset Defaults'; resetBtn.style.padding='8px 12px';
+            btnRow.appendChild(saveBtn); btnRow.appendChild(cancelBtn); btnRow.appendChild(resetBtn);
+            saveBtn.onclick = ()=>{
+                const newLat = parseFloat(lat.value)||LATITUDE; const newLon = parseFloat(lon.value)||LONGITUDE; const newImgMs = parseInt(imgMs.value)||IMAGE_REFRESH_RATE_MS; const newAlertsMs = parseInt(alertsMs.value)||ALERTS_REFRESH_MS;
+                // gather menu rows
+                const newMenu = [];
+                menuContainer.querySelectorAll('div').forEach(row=>{
+                    const inputs = row.querySelectorAll('input'); if(!inputs || inputs.length<2) return;
+                    const title = inputs[0].value.trim(); const url = inputs[1].value.trim();
+                    if(url) newMenu.push({ url: url, title: title || url });
+                });
+                menuData = newMenu;
+                // gather camera rotation rows (direct child panels only)
+                const newCameraRots = [];
+                Array.from(cameraRotContainer.children).forEach(panel=>{
+                    const top = panel.querySelector('div'); if(!top) return;
+                    const inputs = top.querySelectorAll('input'); if(!inputs || inputs.length<2) return;
+                    const tileIndex = parseInt(inputs[0].value);
+                    const interval = parseInt(inputs[1].value) || 120000;
+                        // collect per-URL inputs
+                        const urlInputs = panel.querySelectorAll('.cam-url-input');
+                        const urls = Array.from(urlInputs).map(i=>i.value.trim()).filter(Boolean);
+                    if(!isNaN(tileIndex) && urls.length>0) newCameraRots.push({ tileIndex: tileIndex, intervalMs: interval, urls: urls, currentIndex: 0 });
+                });
+                cameraRotations = newCameraRots;
+                // gather tile rows
+                const newContent = [];
+                tilesContainer.querySelectorAll('div').forEach(row=>{
+                    const inputs = row.querySelectorAll('input'); if(!inputs || inputs.length<1) return;
+                    const url = inputs[0].value.trim(); const title = (inputs[1] && inputs[1].value)? inputs[1].value.trim() : '';
+                    if(url) newContent.push({ url: url, title: title });
+                });
+                LATITUDE = newLat; LONGITUDE = newLon; IMAGE_REFRESH_RATE_MS = newImgMs; ALERTS_REFRESH_MS = newAlertsMs; contentData = newContent;
+                saveSettingsToStorage(); renderMenu(); buildGrid(); refreshImages();
+                // restart intervals
+                if(refreshIntervalId) clearInterval(refreshIntervalId); refreshIntervalId = setInterval(refreshImages, IMAGE_REFRESH_RATE_MS);
+                if(tickerIntervalId) clearInterval(tickerIntervalId); tickerIntervalId = setInterval(updateTicker, IMAGE_REFRESH_RATE_MS);
+                if(alertsIntervalId) clearInterval(alertsIntervalId); alertsIntervalId = setInterval(updateAlerts, ALERTS_REFRESH_MS);
+                // restart camera rotations
+                stopCameraRotations(); startCameraRotations();
+                updateAlerts().then(()=>updateTicker()); closeLightbox();
+            };
+            cancelBtn.onclick = ()=>{ closeLightbox(); };
+            resetBtn.onclick = ()=>{ if(!confirm('Reset to built-in defaults? This will overwrite current tiles and settings.')) return; localStorage.removeItem('mhd_settings'); location.reload(); };
+            panel.appendChild(form); panel.appendChild(btnRow); panel.style.display='block'; openLightbox('', 'settings');
+        }
+
         /* INIT */
         document.addEventListener('DOMContentLoaded', async ()=>{
+            loadSettings();
+            renderMenu();
             buildGrid();
             refreshImages();
-            setInterval(refreshImages, IMAGE_REFRESH_RATE_MS);
+            startCameraRotations();
+            refreshIntervalId = setInterval(refreshImages, IMAGE_REFRESH_RATE_MS);
             // Await alerts so ticker includes alert text immediately
             await updateAlerts();
             updateTicker();
-            setInterval(updateTicker, IMAGE_REFRESH_RATE_MS);
-            setInterval(updateAlerts, ALERTS_REFRESH_MS);
+            tickerIntervalId = setInterval(updateTicker, IMAGE_REFRESH_RATE_MS);
+            alertsIntervalId = setInterval(updateAlerts, ALERTS_REFRESH_MS);
         });
     </script>
 </body>
