@@ -1,159 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>GMRS Contacts — MyHamDashboard</title>
-    
+    <meta charset="UTF-8">
+    <title>GMRS Map - Cincinnati/NKY</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        html,body{height:100%;margin:0;background:#111;color:#eee;font-family:Segoe UI,Roboto,Arial}
-        #page-container{display:flex;flex-direction:column;height:100vh}
-        #header{display:flex;align-items:center;padding:8px 12px;background:#0e0e0e;border-bottom:1px solid #333}
-        #title{font-weight:700;margin-right:16px}
-        #menu{margin-left:auto}
-        #main{display:flex;flex:1;gap:8px;padding:8px}
-        #map{flex:1;min-height:0;border:1px solid #222}
-        #side{width:360px;display:flex;flex-direction:column;gap:8px}
-        .panel{background:rgba(255,255,255,0.03);padding:10px;border-radius:6px;border:1px solid rgba(255,255,255,0.03)}
-        .field{display:flex;flex-direction:column;gap:6px}
-        input,textarea,button{font:inherit;padding:8px;border-radius:4px;border:1px solid #444;background:#0b0b0b;color:#eee}
-        #ticker-wrap{height:34px;background:rgba(0,0,0,0.8);border-top:1px solid #444;display:flex;align-items:center}
-        #ticker-title{padding:0 12px;background:rgba(0,0,0,0.7);height:34px;line-height:34px;border-right:1px solid #444}
-        #ticker-move{flex:1;overflow:hidden}
-        #ticker-inner{display:inline-block;padding-left:100%;white-space:nowrap;animation:scroll-left 60s linear infinite}
-        @keyframes scroll-left{0%{transform:translateX(0)}100%{transform:translateX(-100%)}}
+        body, html { height: 100%; margin: 0; font-family: sans-serif; overflow: hidden; }
+        
+        /* Compact Header */
+        #header { 
+            position: absolute; top: 10px; left: 50px; right: 10px; z-index: 1000;
+            display: flex; align-items: center; gap: 10px; pointer-events: none;
+        }
+        .header-content { 
+            background: rgba(255, 255, 255, 0.9); padding: 5px 15px; 
+            border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            display: flex; align-items: center; gap: 10px; pointer-events: auto;
+        }
+        h2 { margin: 0; font-size: 16px; color: #333; }
+        input#opCallSign { border: 1px solid #ccc; border-radius: 4px; padding: 4px; width: 100px; }
+
+        /* Map occupies full screen */
+        #map { height: 100vh; width: 100vw; z-index: 1; }
+
+        /* Help Button & Modal */
+        .help-btn { 
+            background: #004d40; color: white; border: none; border-radius: 50%; 
+            width: 25px; height: 25px; cursor: pointer; font-weight: bold; pointer-events: auto;
+        }
+        #helpModal {
+            display: none; position: fixed; z-index: 2000; left: 0; top: 0; 
+            width: 100%; height: 100%; background: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background: white; margin: 15% auto; padding: 20px; 
+            width: 300px; border-radius: 8px; position: relative;
+        }
+        .close { float: right; cursor: pointer; font-size: 20px; }
+
+        /* Form styling */
+        .popup-form { display: flex; flex-direction: column; gap: 8px; min-width: 180px; }
+        .popup-form input, .popup-form textarea { width: 100%; box-sizing: border-box; }
+        .save-btn { background: #004d40; color: white; border: none; padding: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div id="page-container">
-            <div id="header">
-            <div id="title">GMRS Contacts</div>
-            <div id="menu" class="panel"><a href="Dashboard.html" style="color:#fff;text-decoration:none">← Dashboard</a></div>
-        </div>
 
-        <div id="main">
-            <div id="contacts-table-panel" class="panel" style="flex:1;min-height:0;overflow:auto">
-                <strong>Last Contacts</strong>
-                <table id="contacts-table" style="width:100%;border-collapse:collapse;margin-top:8px">
-                    <thead style="text-align:left">
-                        <tr>
-                            <th style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.04)">Time</th>
-                            <th style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.04)">Name</th>
-                            <th style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.04)">Callsign</th>
-                            <th style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.04)">City</th>
-                            <th style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.04)">State</th>
-                            <th style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.04)">Notes</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-            <div id="side">
-                <div class="panel">
-                    <strong>Login / Operator</strong>
-                    <div style="display:flex;gap:8px;margin-top:8px">
-                        <input id="operator" placeholder="Your name/callsign" style="flex:1" />
-                        <button id="btn-set-op">Set</button>
-                    </div>
-                </div>
-
-                <div class="panel">
-                    <strong>Log Contact</strong>
-                    <div class="field">
-                        <input id="c_name" placeholder="Contact name" />
-                        <input id="c_callsign" placeholder="Callsign" />
-                        <div style="display:flex;gap:8px">
-                            <input id="c_city" placeholder="City" style="flex:1" />
-                            <input id="c_state" placeholder="State (e.g. OH)" style="width:90px" />
-                        </div>
-                        <textarea id="c_notes" placeholder="Notes"></textarea>
-                        <div style="display:flex;gap:8px">
-                            <button id="btn-add">Add Contact</button>
-                            <button id="btn-export">Export SQLite</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Stored Contacts list removed (table shows recent contacts) -->
-            </div>
-        </div>
-
-        <div id="ticker-wrap">
-            <div id="ticker-title">Ticker</div>
-            <div id="ticker-move"><div id="ticker-inner">Loading...</div></div>
-        </div>
+<div id="header">
+    <div class="header-content">
+        <h2>GMRS Contact Log</h2>
+        <input type="text" id="opCallSign" placeholder="Call Sign" oninput="saveOpName()">
+        <button class="help-btn" onclick="toggleHelp()">?</button>
     </div>
+</div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.2/sql-wasm.js"></script>
-    <script>
-        // Load menu and ticker settings from Dashboard localStorage if present
-        const settingsRaw = localStorage.getItem('mhd_settings');
-        let menuData = [];
-        let LATITUDE = 38.98, LONGITUDE = -84.77;
-        if(settingsRaw){ try{ const s=JSON.parse(settingsRaw); if(Array.isArray(s.menuData)) menuData = s.menuData; if(typeof s.latitude==='number') LATITUDE=s.latitude; if(typeof s.longitude==='number') LONGITUDE=s.longitude; }catch(e){}
-        }
+<div id="helpModal">
+    <div class="modal-content">
+        <span class="close" onclick="toggleHelp()">&times;</span>
+        <h3>How to use</h3>
+        <ul style="padding-left: 20px; font-size: 14px;">
+            <li><b>Add:</b> Right-click on the map location.</li>
+            <li><b>View/Delete:</b> Click a pin to see notes or remove it.</li>
+            <li><b>Save:</b> Data is saved to this browser automatically.</li>
+        </ul>
+    </div>
+</div>
 
-        // menu removed on this page; simple link back to Dashboard is in the header
+<div id="map"></div>
 
-        // Basic ticker (open-meteo + NWS alerts)
-        const WMO_CODES = {0:'Clear',1:'Mainly Clear',2:'Partly Cloudy',3:'Overcast',45:'Fog',48:'Rime Fog',51:'Light Drizzle',61:'Light Rain',80:'Light Showers',95:'Thunderstorm'};
-        async function updateTicker(){ const t=document.getElementById('ticker-inner'); try{ const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}&current=temperature_2m,weather_code,wind_speed_10m&temperature_unit=fahrenheit&wind_speed_unit=mph`); const d=await r.json(); const cur=d.current||{}; const desc=WMO_CODES[cur.weather_code]||'Unknown'; t.innerText=`${new Date().toLocaleTimeString()} | ${Math.round(cur.temperature_2m||0)}°F | ${desc}`; }catch(e){ t.innerText='Weather unavailable'; } }
-        setInterval(updateTicker,60000); updateTicker();
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    // 1. Map Setup (Cincinnati / NKY Focus)
+    const map = L.map('map', { zoomControl: false }).setView([39.1031, -84.5120], 11);
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OSM'
+    }).addTo(map);
 
-        // IndexedDB simple wrapper
-        const DB_NAME='gmrs_contacts_db', STORE='contacts';
-        function openDb(){ return new Promise((res,rej)=>{ const r=indexedDB.open(DB_NAME,1); r.onupgradeneeded = e=>{ const db=e.target.result; if(!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE,{keyPath:'id',autoIncrement:true}); };
-            r.onsuccess = e=>res(e.target.result); r.onerror= e=>rej(e); }); }
-        async function addContact(obj){ const db=await openDb(); const tx=db.transaction(STORE,'readwrite'); tx.objectStore(STORE).add(obj); return tx.complete || new Promise((r)=>{ tx.oncomplete=r; }); }
-        async function getAllContacts(){ const db=await openDb(); return new Promise((res,rej)=>{ const out=[]; const rd=db.transaction(STORE).objectStore(STORE).openCursor(); rd.onsuccess = e=>{ const c=e.target.result; if(!c){ res(out); return; } out.push(c.value); c.continue(); }; rd.onerror= e=>rej(e); }); }
+    // 2. Storage Logic
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('opCallSign').value = localStorage.getItem('myCallSign') || "";
+        loadPins();
+    });
 
-        async function refreshList(){
-            const tbody = document.querySelector('#contacts-table tbody'); tbody.innerHTML = '';
-            const arr = await getAllContacts();
-            // sort by time desc and limit to 200
-            arr.sort((a,b)=>{ return (b.time||'').localeCompare(a.time||''); });
-            const slice = arr.slice(0,200);
-            slice.forEach(c=>{
-                const tr = document.createElement('tr');
-                const fmt = c.time ? new Date(c.time).toLocaleString() : '';
-                const tdTime = document.createElement('td'); tdTime.style.padding='6px'; tdTime.style.borderBottom='1px solid rgba(255,255,255,0.03)'; tdTime.innerText = fmt;
-                const tdName = document.createElement('td'); tdName.style.padding='6px'; tdName.style.borderBottom='1px solid rgba(255,255,255,0.03)'; tdName.innerText = c.name||'';
-                const tdCall = document.createElement('td'); tdCall.style.padding='6px'; tdCall.style.borderBottom='1px solid rgba(255,255,255,0.03)'; tdCall.innerText = c.callsign||'';
-                const tdCity = document.createElement('td'); tdCity.style.padding='6px'; tdCity.style.borderBottom='1px solid rgba(255,255,255,0.03)'; tdCity.innerText = c.city||'';
-                const tdState = document.createElement('td'); tdState.style.padding='6px'; tdState.style.borderBottom='1px solid rgba(255,255,255,0.03)'; tdState.innerText = c.state||'';
-                const tdNotes = document.createElement('td'); tdNotes.style.padding='6px'; tdNotes.style.borderBottom='1px solid rgba(255,255,255,0.03)'; tdNotes.innerText = c.notes||'';
-                tr.appendChild(tdTime); tr.appendChild(tdName); tr.appendChild(tdCall); tr.appendChild(tdCity); tr.appendChild(tdState); tr.appendChild(tdNotes);
-                document.querySelector('#contacts-table tbody').appendChild(tr);
-            });
-        }
+    function saveOpName() {
+        localStorage.setItem('myCallSign', document.getElementById('opCallSign').value);
+    }
 
-        document.getElementById('btn-set-op').onclick = ()=>{ const v=document.getElementById('operator').value.trim(); if(v) localStorage.setItem('gmrs_operator',v); alert('Operator set to '+v); };
+    function toggleHelp() {
+        const modal = document.getElementById('helpModal');
+        modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
+    }
 
-        document.getElementById('btn-add').onclick = async ()=>{
-            const name = document.getElementById('c_name').value.trim();
-            const callsign = document.getElementById('c_callsign').value.trim();
-            const city = document.getElementById('c_city').value.trim();
-            const state = document.getElementById('c_state').value.trim();
-            const notes = document.getElementById('c_notes').value.trim();
-            if(!city){ alert('Please provide a city'); return; }
-            const obj={ name:name, callsign:callsign, city:city, state:state, lat:'', lon:'', notes:notes, time:new Date().toISOString(), operator:localStorage.getItem('gmrs_operator')||'' };
-            await addContact(obj); await refreshList(); alert('Saved'); };
+    // 3. Map Interaction (Right Click)
+    map.on('contextmenu', function(e) {
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+        
+        const form = `
+            <div class="popup-form">
+                <strong>New Contact</strong>
+                <input type="text" id="c_call" placeholder="Call Sign">
+                <input type="text" id="c_name" placeholder="Name">
+                <textarea id="c_note" placeholder="Notes..."></textarea>
+                <button class="save-btn" onclick="addPin(${lat}, ${lng})">Save</button>
+            </div>
+        `;
+        L.popup().setLatLng(e.latlng).setContent(form).openOn(map);
+    });
 
-        // Export contacts to a SQLite file using sql.js
-        async function exportSQLite(){
-            const SQL = await initSqlJs({ locateFile: file => 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.2/sql-wasm.wasm' });
-            const db = new SQL.Database();
-            db.run('CREATE TABLE contacts(id INTEGER PRIMARY KEY, name TEXT, callsign TEXT, city TEXT, state TEXT, lat TEXT, lon TEXT, notes TEXT, time TEXT, operator TEXT);');
-            const rows = await getAllContacts();
-            const stmt = db.prepare('INSERT INTO contacts (name,callsign,city,state,lat,lon,notes,time,operator) VALUES (?,?,?,?,?,?,?,?,?)');
-            rows.forEach(r=>{ stmt.run([r.name||'', r.callsign||'', r.city||'', r.state||'', r.lat||'', r.lon||'', r.notes||'', r.time||'', r.operator||'']); }); stmt.free();
-            const binary = db.export(); const blob = new Blob([binary],{type:'application/octet-stream'});
-            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'gmrs_contacts.sqlite'; document.body.appendChild(a); a.click(); a.remove();
-        }
-        document.getElementById('btn-export').onclick = exportSQLite;
+    function addPin(lat, lng) {
+        const contact = {
+            id: Date.now(),
+            callsign: document.getElementById('c_call').value || 'Unknown',
+            name: document.getElementById('c_name').value || '',
+            note: document.getElementById('c_note').value || '',
+            lat: lat, lng: lng
+        };
 
-        // init
-        (async ()=>{ await refreshList(); })();
-    </script>
+        let contacts = JSON.parse(localStorage.getItem('gmrs_contacts')) || [];
+        contacts.push(contact);
+        localStorage.setItem('gmrs_contacts', JSON.stringify(contacts));
+        
+        renderMarker(contact);
+        map.closePopup();
+    }
+
+    function renderMarker(contact) {
+        L.marker([contact.lat, contact.lng]).addTo(map)
+            .bindPopup(`
+                <b>${contact.callsign}</b><br>${contact.name}<br>
+                <small>${contact.note}</small><br>
+                <button onclick="deletePin(${contact.id})" style="color:red; border:none; background:none; cursor:pointer; padding:5px 0 0 0; font-size:10px;">[Delete]</button>
+            `);
+    }
+
+    function loadPins() {
+        const contacts = JSON.parse(localStorage.getItem('gmrs_contacts')) || [];
+        contacts.forEach(renderMarker);
+    }
+
+    function deletePin(id) {
+        let contacts = JSON.parse(localStorage.getItem('gmrs_contacts')) || [];
+        contacts = contacts.filter(c => c.id !== id);
+        localStorage.setItem('gmrs_contacts', JSON.stringify(contacts));
+        location.reload();
+    }
+</script>
 </body>
 </html>

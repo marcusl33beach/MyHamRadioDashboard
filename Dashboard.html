@@ -16,7 +16,6 @@
             color: #f0f0f0;
         }
 
-        /* Reserve space for bottom ticker */
         #page-container { display:flex; flex-direction:column; min-height:100vh; }
 
         /* GRID LAYOUT (4x3) */
@@ -29,12 +28,11 @@
             padding: 6px;
             box-sizing: border-box;
             width: 100%;
-            height: calc(100vh - 34px); /* leave room for ticker */
+            height: calc(100vh - 34px); 
             overflow: hidden;
-            min-height: 0;
         }
 
-        .grid-item { position: relative; background:#000; border:1px solid rgba(255,255,255,0.08); overflow:hidden; min-height:0 }
+        .grid-item { position: relative; background:#000; border:1px solid rgba(255,255,255,0.08); overflow:hidden; min-height:0; cursor: pointer; }
         .image-container { width:100%; height:100%; display:block; min-height:0 }
         .grid-item img, .grid-item video { width:100%; height:100%; object-fit:cover; display:block }
         .grid-item img.contain-fit { object-fit:contain; background:#000 }
@@ -44,54 +42,80 @@
 
         /* TICKER */
         #ticker-wrap { position:fixed; left:0; right:0; bottom:0; height:34px; background:rgba(0,0,0,0.8); border-top:1px solid #444; display:flex; align-items:center; z-index:9999 }
-        #ticker-title { padding:0 12px; background:rgba(0,0,0,0.7); color:#fff; height:34px; line-height:34px; display:flex; align-items:center; border-right:1px solid #444; position:relative; flex:0 0 auto }
-        /* Dropdown Menu */
+        #ticker-title { padding:0 12px; background:rgba(0,0,0,0.7); color:#fff; height:34px; line-height:34px; display:flex; align-items:center; border-right:1px solid #444; position:relative; flex:0 0 auto; cursor: default; }
+        
         .dropdown-content { display:none; position:absolute; bottom:34px; left:0; background-color:rgba(0,0,0,0.95); min-width:200px; box-shadow:0px -4px 16px rgba(0,0,0,0.5); border:1px solid #444; border-bottom:none; z-index:10000 }
         .dropdown-content a { color:#f0f0f0; padding:8px 12px; display:block; text-decoration:none; font-size:0.9em }
         .dropdown-content a:hover { background:rgb(78, 77, 77) }
         #ticker-title:hover .dropdown-content { display:block }
-        /* Scrolling feed constrained to remaining space */
+
         #ticker-move { flex:1 1 auto; overflow:hidden; height:100%; display:flex; align-items:center }
         #ticker-inner { display:inline-block; min-width:100%; padding-left:100%; white-space:nowrap; animation:scroll-left 60s linear infinite; color:#fff; }
         @keyframes scroll-left { 0%{transform:translateX(0)} 100%{transform:translateX(-100%)} }
 
-        /* LIGHTBOX */
-        #lightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); align-items:center; justify-content:center; z-index:10000 }
+        /* LIGHTBOX & SETTINGS */
+        #lightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); align-items:center; justify-content:center; z-index:10000; }
+        #lightbox-settings {
+            display:none; 
+            max-width:1100px; 
+            width: 90%; 
+            max-height:85vh; 
+            overflow:auto; 
+            padding:30px; 
+            background:rgba(20, 20, 20, 0.98); border: 1px solid #555; border-radius:8px; 
+            color:#eee; box-shadow: 0 0 30px rgba(0,0,0,0.8);
+        }
         .lightbox-content-style { max-width:95%; max-height:95%; }
-        #lightbox-close { position:absolute; top:18px; right:22px; font-size:34px; color:#fff; cursor:pointer }
+
+        /* CAMERA GRID LIGHTBOX */
+        #lightbox-cam-grid { 
+            display:none; 
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
+            gap: 15px; 
+            width: 90%; 
+            max-height: 85vh; 
+            overflow-y: auto; 
+            padding: 10px;
+        }
+        .cam-grid-item { background: #000; border: 1px solid #444; position: relative; }
+        .cam-grid-item img { width: 100%; height: auto; display: block; }
+
+        #lightbox-close { position:absolute; top:18px; right:22px; font-size:34px; color:#fff; cursor:pointer; z-index: 10001; }
+        
+        .settings-row { margin-bottom: 10px; display: flex; gap: 10px; align-items: center; }
+        input[type="number"], input[type="text"], textarea { background: #333; color: #fff; border: 1px solid #555; padding: 6px; border-radius: 4px; }
+        button { cursor: pointer; padding: 8px 12px; border-radius: 4px; border: 1px solid #666; background: #444; color: #fff; }
+        button:hover { background: #555; }
+        h3 { border-bottom: 1px solid #444; padding-bottom: 5px; margin-top: 25px; }
+        .btn-del { background: #822; border: none; padding: 4px 8px; }
     </style>
 </head>
 <body>
     <div id="page-container">
         <main id="grid-container"></main>
-
         <div id="ticker-wrap">
             <div id="ticker-title">▾ Menu
-                <div class="dropdown-content" id="dropdown-content">
-                    <!-- menu items rendered by JS -->
-                </div>
+                <div class="dropdown-content" id="dropdown-content"></div>
             </div>
-            <div id="ticker-move"><div id="ticker-inner">Loading Weather Data...</div></div>
+            <div id="ticker-move"><div id="ticker-inner">Loading Weather & RSS...</div></div>
         </div>
     </div>
 
-    <div id="lightbox" onclick="closeLightbox()">
-        <div id="lightbox-close">&times;</div>
+    <div id="lightbox" onclick="if(event.target.id==='lightbox') closeLightbox()">
+        <div id="lightbox-close" onclick="closeLightbox()">&times;</div>
         <img id="lightbox-img" class="lightbox-content-style" style="display:none" />
         <video id="lightbox-video" class="lightbox-content-style" style="display:none" controls autoplay loop></video>
-        <div id="lightbox-settings" class="lightbox-content-style" style="display:none; max-width:900px; overflow:auto; padding:12px; background:rgba(10,10,10,0.95); border-radius:6px; color:#eee"></div>
+        <div id="lightbox-cam-grid" class="lightbox-content-style"></div>
+        <div id="lightbox-settings" onclick="event.stopPropagation()"></div>
     </div>
 
     <script>
-        // --- CONFIG ---
         let LATITUDE = 38.98;
         let LONGITUDE = -84.77;
-        let IMAGE_REFRESH_RATE_MS = 600000; // 10 minutes
-        let ALERTS_REFRESH_MS = 600000; // 10 minutes
         let alertsText = '';
-        let refreshIntervalId, tickerIntervalId, alertsIntervalId;
+        let rssUrls = ["https://feeds.feedburner.com/weather/headlines"];
+        let cameraRotationIntervals = [];
 
-        // Camera rotation defaults: rotate tileIndex 8 (Traffic Cam) through several camera images every 2 minutes
         let cameraRotations = [
             {
                 tileIndex: 8,
@@ -106,29 +130,28 @@
                 currentIndex: 0
             }
         ];
-        let cameraRotationIntervals = [];
 
-                // Default contentData (used unless you override in Dashboard.html)
-                let contentData = [
-    { "url": "https://radar.weather.gov/ridge/standard/CONUS-LARGE_loop.gif", "title": "CONUS Radar (Large)" },
-    { "url": "https://graphical.weather.gov/images/conus/T1_conus.png", "title": "CONUS Temperature" },
-    { "url": "https://meshmap.net/", "title": "MeshMap" },
-    { "url": "https://www.heavens-above.com/orbitdisplay.aspx?icon=iss&width=600&height=300&mode=M&satid=25544", "title": "ISS Tracker" },
-    { "url": "https://prop.kc2g.com/renders/current/mufd-normal-now.svg", "title": "MUF Day Normal" },
-    { "url": "https://www.wpc.ncep.noaa.gov/noaa/noaad2.gif?1766870046", "title": "Forecast Charts" },
-    { "url": "https://services.swpc.noaa.gov/experimental/images/aurora_dashboard/tonights_static_viewline_forecast.png", "title": "Aurora Forecast" },
-    { "url": "https://images.lightningmaps.org/blitzortung/america/index.php?animation=usa", "title": "USA Lightning Map" },
-    { "url": "https://www.trimarc.org/images/milestone/CCTV_06_275_0089.jpg", "title": "Traffic Cam" },
-    { "url": "https://cdn.star.nesdis.noaa.gov/GOES16/ABI/SECTOR/can/13/GOES16-CAN-13-1125x560.gif", "title": "CONUS IR Satellite" },
-    { "url": "https://www.timeanddate.com/scripts/sunmap.php?iso=now", "title": "Sun/Darkness Map" },
-    { "url": "https://www.hamqsl.com/solar101vhfpic.php", "title": "Solar Data" }
-];
+        let contentData = [
+            { "url": "https://radar.weather.gov/ridge/standard/CONUS-LARGE_loop.gif", "title": "CONUS Radar (Large)" },
+            { "url": "https://graphical.weather.gov/images/conus/T1_conus.png", "title": "CONUS Temperature" },
+            { "url": "https://meshmap.net/", "title": "MeshMap" },
+            { "url": "https://www.heavens-above.com/orbitdisplay.aspx?icon=iss&width=600&height=300&mode=M&satid=25544", "title": "ISS Tracker" },
+            { "url": "https://prop.kc2g.com/renders/current/mufd-normal-now.svg", "title": "MUF Day Normal" },
+            { "url": "https://www.wpc.ncep.noaa.gov/noaa/noaad2.gif?1766870046", "title": "Forecast Charts" },
+            { "url": "https://services.swpc.noaa.gov/experimental/images/aurora_dashboard/tonights_static_viewline_forecast.png", "title": "Aurora Forecast" },
+            { "url": "https://images.lightningmaps.org/blitzortung/america/index.php?animation=usa", "title": "USA Lightning Map" },
+            { "url": "https://www.trimarc.org/images/milestone/CCTV_06_275_0089.jpg", "title": "Traffic Cam" },
+            { "url": "https://cdn.star.nesdis.noaa.gov/GOES16/ABI/SECTOR/can/13/GOES16-CAN-13-1125x560.gif", "title": "CONUS IR Satellite" },
+            { "url": "https://www.timeanddate.com/scripts/sunmap.php?iso=now", "title": "Sun/Darkness Map" },
+            { "url": "https://www.hamqsl.com/solar101vhfpic.php", "title": "Solar Data" }
+        ];
 
-        // Default menu links editable via Settings (these are the user-editable links; Refresh and Settings remain fixed)
         let menuData = [
             { url: 'https://hamstudy.org/', title: 'HamStudy.org' },
             { url: 'contacts.html', title: 'GMRS Contacts' },
+            { url: 'GMRSNet.html', title: 'GMRS NetLog' },
             { url: 'https://www.weather.gov/', title: 'NWS Home' },
+            { url: 'https://www.broadcastify.com/listen/', title: 'Broadcastify' },
             { url: 'https://ohgo.com/cincinnati?lt=39.17072157631222&ln=-84.47758421160262&z=10&ls=incident,dangerous-slowdown,construction,camera', title: 'OHGO Cameras' },
             { url: 'https://cincygmrs.com/', title: 'CincyGMRS Blog' },
             { url: 'https://cincinnatigmrs.ddns.net/', title: 'CincyGMRS Forum' },
@@ -138,13 +161,10 @@
             { url: 'https://www.radioreference.com/db/browse/stid/21', title: 'RadioReference KY' }
         ];
 
-        /* GRID BUILDER */
         function getContentType(url){
             const u = url.toLowerCase();
             if (u.endsWith('.mp4')) return 'video';
-            // Known hosts that return image content despite lacking an image extension
             if (u.includes('hamqsl') || u.includes('solarpic') || u.includes('solarvhf') || u.includes('orbitdisplay') || u.includes('sunmap') || u.includes('lightningmaps')) return 'img';
-            // Try embedding meshmap in-tile; if framing blocked we'll show an Open link
             if (u.includes('meshmap.net')) return 'embed';
             if (u.match(/\.(jpg|jpeg|png|gif|svg|bmp)(\?.*)?$/)) return 'img';
             return 'link';
@@ -152,353 +172,252 @@
 
         function buildGrid(){
             const grid = document.getElementById('grid-container'); grid.innerHTML = '';
-            contentData.forEach(item => {
+            contentData.forEach((item, index) => {
                 const gi = document.createElement('div'); gi.className = 'grid-item';
+                gi.id = `tile-${index}`;
                 const c = document.createElement('div'); c.className = 'image-container';
                 const type = getContentType(item.url);
                 let el;
                 if(type === 'video'){
                     el = document.createElement('video'); el.src = item.url; el.autoplay = true; el.loop = true; el.muted = true;
                 } else if (type === 'embed'){
-                    // Attempt to embed meshmap directly inside the tile via iframe
-                    el = document.createElement('iframe');
-                    el.style.cssText = 'width:100%;height:100%;border:0';
-                    el.src = item.url;
-                    // If embedding is blocked, replace the iframe with a link placeholder
-                    const fallbackReplace = () => {
-                        const placeholder = document.createElement('div'); placeholder.className='link-placeholder'; placeholder.textContent = item.title || 'Open Site';
-                        placeholder.onclick = () => window.open(item.url, '_blank');
-                        c.innerHTML = ''; c.appendChild(placeholder);
-                        gi.onclick = null;
-                    };
-                    // If iframe load fails or doesn't render useful content within 2.5s, show open-in-new-tab placeholder
-                    const timeout = setTimeout(()=>{
-                        try{
-                            // try to access contentDocument - will throw on cross-origin (assume OK)
-                            if(!el.contentDocument || !el.contentDocument.body || el.contentDocument.body.childNodes.length===0){
-                                fallbackReplace();
-                            }
-                        }catch(e){
-                            // cross-origin access denied -> likely loaded fine, don't replace
-                        }
-                    }, 2500);
-                    el.onload = ()=>{ clearTimeout(timeout); };
+                    el = document.createElement('iframe'); el.style.cssText = 'width:100%;height:100%;border:0'; el.src = item.url;
                 } else if (type === 'link'){
                     el = document.createElement('div'); el.className = 'link-placeholder'; el.textContent = item.title || 'Open Link';
                 } else {
-                    el = document.createElement('img'); el.setAttribute('data-base-src', item.url); el.referrerPolicy = 'no-referrer';
-                    if(item.url.includes('hamqsl')||item.url.includes('orbitdisplay')||item.url.includes('wpc.ncep.noaa.gov')||item.url.includes('spc.noaa.gov')||item.url.includes('lightningmaps')) el.classList.add('contain-fit');
+                    el = document.createElement('img'); 
                     el.src = item.url + (item.url.includes('?')? '&':'?') + 't=' + Date.now();
-                    el.onerror = function(){ this.style.display='none'; if(!c.querySelector('.image-unavailable-msg')){ const d=document.createElement('div'); d.className='image-unavailable-msg'; d.style.cssText='color:#666;display:flex;align-items:center;justify-content:center;height:100%'; d.innerText='Image Unavailable'; c.appendChild(d); } }
+                    if(item.url.includes('hamqsl')||item.url.includes('orbitdisplay')) el.classList.add('contain-fit');
                 }
                 c.appendChild(el);
-                // Wire click handlers according to type
-                if (type === 'embed'){
-                    // clicking iframe tile should attempt focus/open nothing; provide an overlay click to open in new tab
-                    gi.onclick = ()=>{ window.open(item.url, '_blank'); };
-                } else if (type === 'link'){
-                    gi.onclick = ()=>window.open(item.url, '_blank');
-                } else {
-                    gi.onclick = ()=>openLightbox(item.url, getContentType(item.url));
-                }
+
+                gi.onclick = ()=> {
+                    if(index === 8) {
+                        openCameraGrid();
+                    } else {
+                        (type === 'link' || type === 'embed') ? window.open(item.url, '_blank') : openLightbox(item.url, type);
+                    }
+                };
+
                 if(item.title){ const t=document.createElement('span'); t.className='image-title'; t.innerText = item.title; c.appendChild(t); }
                 gi.appendChild(c);
                 grid.appendChild(gi);
             });
         }
 
-        function refreshImages(){ document.querySelectorAll('#grid-container img').forEach(img=>{ const u = img.getAttribute('data-base-src'); if(u) img.src = u + (u.includes('?')? '&':'?') + 't=' + Date.now(); }); }
+        function openCameraGrid() {
+            const lb = document.getElementById('lightbox');
+            const grid = document.getElementById('lightbox-cam-grid');
+            const img = document.getElementById('lightbox-img');
+            const vid = document.getElementById('lightbox-video');
+            const sett = document.getElementById('lightbox-settings');
+            
+            img.style.display='none'; vid.style.display='none'; sett.style.display='none';
+            grid.innerHTML = '';
+            grid.style.display = 'grid';
+            lb.style.display='flex';
 
-        // Camera rotation engine: start/stop rotation intervals and update tiles
-        function stopCameraRotations(){ cameraRotationIntervals.forEach(id=>clearInterval(id)); cameraRotationIntervals = []; }
+            cameraRotations[0].urls.forEach(url => {
+                const div = document.createElement('div');
+                div.className = 'cam-grid-item';
+                const camImg = document.createElement('img');
+                camImg.src = url + (url.includes('?')? '&':'?') + 't=' + Date.now();
+                div.appendChild(camImg);
+                grid.appendChild(div);
+            });
+        }
+
         function startCameraRotations(){
-            stopCameraRotations();
+            cameraRotationIntervals.forEach(id=>clearInterval(id));
+            cameraRotationIntervals = [];
             cameraRotations.forEach((rot)=>{
-                if(!rot || !Array.isArray(rot.urls) || rot.urls.length===0) return;
-                // Ensure tile exists
-                if(typeof rot.tileIndex !== 'number' || rot.tileIndex < 0 || rot.tileIndex >= contentData.length) return;
-                // Apply initial url
-                rot.currentIndex = rot.currentIndex || 0;
-                contentData[rot.tileIndex].url = rot.urls[rot.currentIndex % rot.urls.length];
-                // Create interval to step through urls
                 const id = setInterval(()=>{
-                    rot.currentIndex = ((rot.currentIndex||0) + 1) % rot.urls.length;
-                    if(contentData[rot.tileIndex]){
-                        contentData[rot.tileIndex].url = rot.urls[rot.currentIndex];
-                        buildGrid();
-                        refreshImages();
+                    rot.currentIndex = (rot.currentIndex + 1) % rot.urls.length;
+                    const newUrl = rot.urls[rot.currentIndex];
+                    const tile = document.getElementById(`tile-${rot.tileIndex}`);
+                    if(tile){
+                        const img = tile.querySelector('img');
+                        if(img) img.src = newUrl + (newUrl.includes('?')? '&':'?') + 't=' + Date.now();
                     }
-                }, rot.intervalMs || 120000);
+                }, rot.intervalMs);
                 cameraRotationIntervals.push(id);
             });
         }
 
-        // Menu rendering
         function renderMenu(){
-            const container = document.getElementById('dropdown-content'); if(!container) return;
-            container.innerHTML = '';
-            // user links
+            const container = document.getElementById('dropdown-content'); container.innerHTML = '';
             menuData.forEach(item=>{
-                const a = document.createElement('a'); a.href = item.url; a.target = '_blank'; a.innerText = item.title || item.url; container.appendChild(a);
+                const a = document.createElement('a'); a.href = item.url; a.target = '_blank'; a.innerText = item.title; container.appendChild(a);
             });
-            // fixed actions: Refresh, Settings
-            const ref = document.createElement('a'); ref.href = 'javascript:location.reload()'; ref.innerText = 'Refresh Dashboard'; container.appendChild(ref);
-            const sett = document.createElement('a'); sett.href = 'javascript:void(0)'; sett.onclick = openSettings; sett.innerText = 'Settings'; container.appendChild(sett);
+            container.innerHTML += `<a href="javascript:location.reload()">Refresh Dashboard</a>`;
+            container.innerHTML += `<a href="javascript:void(0)" onclick="openSettings()">Settings</a>`;
         }
 
-        function openLightbox(url,type){
+        function openLightbox(url, type){
             const lb = document.getElementById('lightbox');
             const img = document.getElementById('lightbox-img');
             const vid = document.getElementById('lightbox-video');
-            const settingsPanel = document.getElementById('lightbox-settings');
-            // remove any previously injected iframe
-            const prev = document.getElementById('lightbox-injected-iframe');
-            if(prev) prev.remove();
-
-            img.style.display='none'; vid.style.display='none'; vid.pause();
-
-            if(type==='settings'){
-                if(settingsPanel){ settingsPanel.style.display='block'; }
-                lb.style.display='flex';
-                return;
-            }
-
-            if(type==='video'){
-                vid.src=url; vid.style.display='block'; vid.play();
-                lb.style.display='flex';
-                return;
-            }
-
-            if(type==='try-embed'){
-                // attempt to embed in an iframe; if blocked, fall back to opening a new tab
-                const iframe = document.createElement('iframe');
-                iframe.id = 'lightbox-injected-iframe';
-                iframe.style.cssText = 'border:0;width:90%;height:80%';
-                iframe.src = url;
-                iframe.onload = function(){ img.style.display='none'; vid.style.display='none'; iframe.style.display='block'; lb.style.display='flex'; };
-                // fallback if iframe doesn't load within 2.5s (likely blocked)
-                const fallback = setTimeout(()=>{
-                    if(!iframe.contentDocument || iframe.contentDocument.location.href === 'about:blank'){
-                        iframe.remove();
-                        window.open(url, '_blank');
-                    }
-                }, 2500);
-                iframe.onerror = function(){ clearTimeout(fallback); iframe.remove(); window.open(url, '_blank'); };
-                // append and wait for onload or fallback
-                lb.appendChild(iframe);
-                return;
-            }
-
-            // default: show as image
-            img.src = url + (url.includes('?')? '&':'?') + 't=' + Date.now(); img.style.display='block';
+            const grid = document.getElementById('lightbox-cam-grid');
+            const sett = document.getElementById('lightbox-settings');
+            img.style.display='none'; vid.style.display='none'; grid.style.display='none'; sett.style.display='none';
             lb.style.display='flex';
-        }
-        function closeLightbox(){
-            const lb = document.getElementById('lightbox');
-            lb.style.display='none';
-            const vid = document.getElementById('lightbox-video'); if(vid) vid.pause();
-            const injected = document.getElementById('lightbox-injected-iframe'); if(injected) injected.remove();
-            const settingsPanel = document.getElementById('lightbox-settings'); if(settingsPanel){ settingsPanel.style.display='none'; /*clear content*/ settingsPanel.innerHTML = ''; }
+            if(type==='video'){ vid.src=url; vid.style.display='block'; vid.play(); } 
+            else { img.src = url + (url.includes('?')? '&':'?') + 't=' + Date.now(); img.style.display='block'; }
         }
 
-        // WEATHER TICKER (open-meteo)
-        const WMO_CODES = {0:"Clear",1:"Mainly Clear",2:"Partly Cloudy",3:"Overcast",45:"Fog",48:"Rime Fog",51:"Light Drizzle",61:"Light Rain",80:"Light Showers",95:"Thunderstorm"};
-        function getWeatherUrl(){
-            return `https://api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}&current=temperature_2m,weather_code,wind_speed_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FNew_York`;
+        function closeLightbox(){
+            document.getElementById('lightbox').style.display='none';
+            const vid = document.getElementById('lightbox-video'); if(vid) vid.pause();
+            document.getElementById('lightbox-settings').style.display = 'none';
+            document.getElementById('lightbox-cam-grid').style.display = 'none';
         }
+
+        async function updateWeatherAlerts() {
+            try {
+                const response = await fetch(`https://api.weather.gov/alerts/active?point=${LATITUDE},${LONGITUDE}`);
+                const data = await response.json();
+                if (data.features && data.features.length > 0) {
+                    const alertList = data.features.map(f => f.properties.headline).join(' | ');
+                    alertsText = ` | ⚠️ ALERTS: ${alertList}`;
+                } else {
+                    alertsText = ' | [ Alerts: All Clear ]';
+                }
+            } catch (e) { alertsText = ' | Weather Alerts Unavailable'; }
+        }
+
+        async function fetchRSS() {
+            let combinedHeadlines = "";
+            for (let url of rssUrls) {
+                try {
+                    const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`);
+                    const data = await res.json();
+                    if(data.items) combinedHeadlines += data.items.map(item => item.title).join(' • ') + " | ";
+                } catch(e) { console.error("RSS fetch failed", e); }
+            }
+            return combinedHeadlines;
+        }
+
         async function updateTicker(){
-            const t = document.getElementById('ticker-inner');
             try{
-                const r = await fetch(getWeatherUrl());
-                if(!r.ok) throw 0;
+                const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}&current=temperature_2m,wind_speed_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FNew_York`);
                 const d = await r.json();
                 const cur = d.current||{};
-                const desc = WMO_CODES[cur.weather_code]||'Unknown';
-                t.innerText = `[Boone County, KY] ${new Date().toLocaleTimeString()} | ${Math.round(cur.temperature_2m||0)}°F | ${Math.round(cur.wind_speed_10m||0)} mph | ${desc}` + (alertsText||'');
-            }catch(e){
-                t.innerText = 'Weather Data Unavailable' + (alertsText||'');
-            }
+                const rssFeed = await fetchRSS();
+                document.getElementById('ticker-inner').innerText = `[Cincinnati/NKY] ${new Date().toLocaleTimeString()} | ${Math.round(cur.temperature_2m||0)}°F | Wind: ${Math.round(cur.wind_speed_10m||0)} mph` + alertsText + (rssFeed ? ` | RSS: ${rssFeed}` : '');
+            }catch(e){ document.getElementById('ticker-inner').innerText = 'Data Unavailable'; }
         }
 
-        // Alerts (silent fail for file://)
-        async function updateAlerts(){
-            try{
-                const resp = await fetch(`https://api.weather.gov/alerts/active?point=${LATITUDE},${LONGITUDE}`,{headers:{'Accept':'application/geo+json'}});
-                if(!resp.ok) throw 0;
-                const d = await resp.json();
-                const alerts = d.features||[];
-                if(!alerts.length){ alertsText=' | No Alerts'; return; }
-                alertsText = ' | ALERTS: ' + alerts.slice(0,2).map(a=>a.properties?.event||'Alert').join(' || ');
-            }catch(e){ alertsText=' | No Alerts'; }
-        }
-
-        // Settings persistence and UI
-        function loadSettings(){
-            try{
-                const raw = localStorage.getItem('mhd_settings'); if(!raw) return;
-                const s = JSON.parse(raw);
-                if(typeof s.latitude === 'number') LATITUDE = s.latitude;
-                if(typeof s.longitude === 'number') LONGITUDE = s.longitude;
-                if(typeof s.imageRefreshMs === 'number') IMAGE_REFRESH_RATE_MS = s.imageRefreshMs;
-                if(typeof s.alertsRefreshMs === 'number') ALERTS_REFRESH_MS = s.alertsRefreshMs;
-                if(Array.isArray(s.contentData)) contentData = s.contentData;
-                if(Array.isArray(s.menuData)) menuData = s.menuData;
-            }catch(e){ console.warn('Failed to load settings', e); }
-        }
-        function saveSettingsToStorage(){
-            const s = { latitude: LATITUDE, longitude: LONGITUDE, imageRefreshMs: IMAGE_REFRESH_RATE_MS, alertsRefreshMs: ALERTS_REFRESH_MS, contentData: contentData, menuData: menuData, cameraRotations: cameraRotations };
-            localStorage.setItem('mhd_settings', JSON.stringify(s));
-        }
         function openSettings(){
-            const panel = document.getElementById('lightbox-settings'); panel.innerHTML = '';
-            const form = document.createElement('div'); form.style.display='flex'; form.style.flexDirection='column'; form.style.gap='8px';
-            const makeField = (labelText, inputEl)=>{ const wrapper=document.createElement('div'); const label=document.createElement('div'); label.innerText=labelText; label.style.fontWeight='700'; label.style.marginBottom='4px'; wrapper.appendChild(label); wrapper.appendChild(inputEl); return wrapper; };
+            const panel = document.getElementById('lightbox-settings');
+            const img = document.getElementById('lightbox-img');
+            const vid = document.getElementById('lightbox-video');
+            const grid = document.getElementById('lightbox-cam-grid');
+            
+            img.style.display='none'; vid.style.display='none'; grid.style.display='none';
+            
+            panel.innerHTML = `
+                <h2>Dashboard Settings</h2>
+                <div class="settings-row">
+                    <label>Lat:</label><input type="number" step="0.01" id="set-lat" value="${LATITUDE}">
+                    <label>Lon:</label><input type="number" step="0.01" id="set-lon" value="${LONGITUDE}">
+                </div>
+                
+                <h3>Camera Rotation (Tile 8)</h3>
+                <div id="camera-rotation-list"></div>
+                <button onclick="addRow('camera-rotation-list')">+ Add Camera</button>
+                
+                <h3>Grid Tiles</h3>
+                <div id="tile-editor" style="max-height:200px; overflow:auto"></div>
+                <button onclick="addRow('tile-editor')">+ Add Tile</button>
 
-            const lat = document.createElement('input'); lat.type='number'; lat.step='0.0001'; lat.value = LATITUDE; lat.style.width='220px';
-            const lon = document.createElement('input'); lon.type='number'; lon.step='0.0001'; lon.value = LONGITUDE; lon.style.width='220px';
-            const imgMs = document.createElement('input'); imgMs.type='number'; imgMs.value = IMAGE_REFRESH_RATE_MS; imgMs.style.width='220px';
-            const alertsMs = document.createElement('input'); alertsMs.type='number'; alertsMs.value = ALERTS_REFRESH_MS; alertsMs.style.width='220px';
+                <h3>Menu Links</h3>
+                <div id="menu-editor" style="max-height:200px; overflow:auto"></div>
+                <button onclick="addRow('menu-editor')">+ Add Menu Link</button>
 
-            // per-menu editor
-            const menuContainer = document.createElement('div'); menuContainer.style.display='flex'; menuContainer.style.flexDirection='column'; menuContainer.style.gap='6px'; menuContainer.style.marginBottom='10px';
-            const addMenuRow = (m)=>{
-                const row = document.createElement('div'); row.style.display='flex'; row.style.gap='8px'; row.style.alignItems='center';
-                const titleIn = document.createElement('input'); titleIn.type='text'; titleIn.placeholder='Label'; titleIn.style.width='180px'; titleIn.value = (m && m.title)? m.title : '';
-                const urlIn = document.createElement('input'); urlIn.type='text'; urlIn.placeholder='https://...'; urlIn.style.flex='1'; urlIn.value = (m && m.url)? m.url : '';
-                const rm = document.createElement('button'); rm.innerText='Remove'; rm.onclick = ()=>{ row.remove(); };
-                row.appendChild(titleIn); row.appendChild(urlIn); row.appendChild(rm);
-                menuContainer.appendChild(row);
-                return row;
-            };
-            (menuData||[]).forEach(m=>addMenuRow(m));
-            const addMenuBtn = document.createElement('button'); addMenuBtn.innerText='Add Menu Link'; addMenuBtn.onclick = ()=>addMenuRow();
-            form.appendChild(makeField('Menu Links (label + url)', (()=>{ const w=document.createElement('div'); w.appendChild(menuContainer); w.appendChild(addMenuBtn); return w; })()));
+                <h3>Ticker RSS Feeds</h3>
+                <div id="rss-editor" style="max-height:150px; overflow:auto"></div>
+                <button onclick="addRow('rss-editor')">+ Add RSS Feed</button>
+                
+                <div style="margin-top:20px;">
+                    <button onclick="saveSettings()">Save & Reload</button>
+                    <button onclick="closeLightbox()">Cancel</button>
+                    <button style="background:#822" onclick="if(confirm('Reset to defaults?')) {localStorage.removeItem('mhd_settings'); location.reload();}">Factory Reset</button>
+                </div>
+            `;
 
-            // Camera rotation editor
-            const cameraRotContainer = document.createElement('div'); cameraRotContainer.style.display='flex'; cameraRotContainer.style.flexDirection='column'; cameraRotContainer.style.gap='6px'; cameraRotContainer.style.marginBottom='10px';
-            const addCameraRotRow = (rot)=>{
-                const panel = document.createElement('div');
-                panel.style.border = '1px solid rgba(255,255,255,0.06)';
-                panel.style.padding = '10px';
-                panel.style.borderRadius = '6px';
-                panel.style.background = 'rgba(255,255,255,0.02)';
-                panel.style.display = 'flex';
-                panel.style.flexDirection = 'column';
-                panel.style.gap = '8px';
+            cameraRotations[0].urls.forEach((url) => {
+                const r = document.createElement('div'); r.className='settings-row';
+                r.innerHTML = `<input type="text" value="${url}" style="flex:1" class="cam-url"><button class="btn-del" onclick="this.parentElement.remove()">X</button>`;
+                panel.querySelector('#camera-rotation-list').appendChild(r);
+            });
 
-                const row = document.createElement('div'); row.style.display='flex'; row.style.flexDirection='row'; row.style.gap='8px'; row.style.alignItems='center';
-                const tileIdx = document.createElement('input'); tileIdx.type='number'; tileIdx.placeholder='Tile index (0-based)'; tileIdx.style.width='120px'; tileIdx.value = (rot && typeof rot.tileIndex==='number')? rot.tileIndex : '';
-                const intervalIn = document.createElement('input'); intervalIn.type='number'; intervalIn.placeholder='Interval ms'; intervalIn.style.width='140px'; intervalIn.value = (rot && rot.intervalMs)? rot.intervalMs : 120000;
-                const rm = document.createElement('button'); rm.innerText='Remove'; rm.onclick = ()=>{ panel.remove(); };
-                row.appendChild(tileIdx); row.appendChild(intervalIn); row.appendChild(rm);
+            contentData.forEach(t => {
+                const r = document.createElement('div'); r.className='settings-row';
+                r.innerHTML = `<input type="text" value="${t.title}" style="width:150px" class="tile-title"><input type="text" value="${t.url}" style="flex:1" class="tile-url"><button class="btn-del" onclick="this.parentElement.remove()">X</button>`;
+                panel.querySelector('#tile-editor').appendChild(r);
+            });
 
-                // URLs container: each URL gets its own input row
-                const urlsContainer = document.createElement('div'); urlsContainer.style.display='flex'; urlsContainer.style.flexDirection='column'; urlsContainer.style.gap='6px';
-                const addUrlRow = (u)=>{
-                    const r = document.createElement('div'); r.style.display='flex'; r.style.gap='8px'; r.style.alignItems='center';
-                    const inp = document.createElement('input'); inp.type='text'; inp.placeholder='https://...'; inp.style.flex='1'; inp.className = 'cam-url-input'; inp.value = u || '';
-                    const rem = document.createElement('button'); rem.innerText='Remove'; rem.onclick = ()=>{ r.remove(); };
-                    r.appendChild(inp); r.appendChild(rem);
-                    urlsContainer.appendChild(r);
-                    return r;
-                };
-                // populate initial URLs if provided
-                if(rot && Array.isArray(rot.urls)) rot.urls.forEach(u=>addUrlRow(u));
-                // add-url button
-                const addUrlBtn = document.createElement('button'); addUrlBtn.innerText = 'Add URL'; addUrlBtn.onclick = ()=>addUrlRow('');
+            menuData.forEach(m => {
+                const r = document.createElement('div'); r.className='settings-row';
+                r.innerHTML = `<input type="text" value="${m.title}" style="width:150px" class="menu-title"><input type="text" value="${m.url}" style="flex:1" class="menu-url"><button class="btn-del" onclick="this.parentElement.remove()">X</button>`;
+                panel.querySelector('#menu-editor').appendChild(r);
+            });
 
-                panel.appendChild(row);
-                panel.appendChild(urlsContainer);
-                panel.appendChild(addUrlBtn);
-                cameraRotContainer.appendChild(panel);
-                return panel;
-            };
-            (cameraRotations||[]).forEach(r=>addCameraRotRow(r));
-            const addCamRotBtn = document.createElement('button'); addCamRotBtn.innerText='Add Camera Rotation'; addCamRotBtn.onclick = ()=>addCameraRotRow();
-            form.appendChild(makeField('Camera Rotations (tileIndex, interval, urls)', (()=>{ const w=document.createElement('div'); w.appendChild(cameraRotContainer); w.appendChild(addCamRotBtn); return w; })()));
+            rssUrls.forEach(url => {
+                const r = document.createElement('div'); r.className='settings-row';
+                r.innerHTML = `<input type="text" value="${url}" style="flex:1" class="rss-url-input"><button class="btn-del" onclick="this.parentElement.remove()">X</button>`;
+                panel.querySelector('#rss-editor').appendChild(r);
+            });
 
-            // per-tile editor
-            const tilesContainer = document.createElement('div'); tilesContainer.style.display='flex'; tilesContainer.style.flexDirection='column'; tilesContainer.style.gap='6px';
-            const addTileRow = (tile)=>{
-                const row = document.createElement('div'); row.style.display='flex'; row.style.gap='8px'; row.style.alignItems='center';
-                const urlIn = document.createElement('input'); urlIn.type='text'; urlIn.placeholder='https://...'; urlIn.style.flex='1'; urlIn.value = (tile && tile.url) ? tile.url : '';
-                const titleIn = document.createElement('input'); titleIn.type='text'; titleIn.placeholder='Title'; titleIn.style.width='240px'; titleIn.value = (tile && tile.title) ? tile.title : '';
-                const rm = document.createElement('button'); rm.innerText='Remove'; rm.onclick = ()=>{ row.remove(); };
-                row.appendChild(urlIn); row.appendChild(titleIn); row.appendChild(rm);
-                tilesContainer.appendChild(row);
-                return row;
-            };
-            // populate rows from current contentData
-            (contentData||[]).forEach(t=>addTileRow(t));
-            const addBtn = document.createElement('button'); addBtn.innerText='Add Tile'; addBtn.onclick = ()=>addTileRow();
-            const tilesWrapper = document.createElement('div'); tilesWrapper.appendChild(tilesContainer); tilesWrapper.appendChild(addBtn);
-
-            form.appendChild(makeField('Latitude', lat)); form.appendChild(makeField('Longitude', lon));
-            form.appendChild(makeField('Image refresh (ms)', imgMs)); form.appendChild(makeField('Alerts refresh (ms)', alertsMs));
-            form.appendChild(makeField('Tiles (per-row editor)', tilesWrapper));
-            const btnRow = document.createElement('div'); btnRow.style.display='flex'; btnRow.style.gap='8px'; btnRow.style.marginTop='8px';
-            const saveBtn = document.createElement('button'); saveBtn.innerText='Save'; saveBtn.style.padding='8px 12px';
-            const cancelBtn = document.createElement('button'); cancelBtn.innerText='Cancel'; cancelBtn.style.padding='8px 12px';
-            const resetBtn = document.createElement('button'); resetBtn.innerText='Reset Defaults'; resetBtn.style.padding='8px 12px';
-            btnRow.appendChild(saveBtn); btnRow.appendChild(cancelBtn); btnRow.appendChild(resetBtn);
-            saveBtn.onclick = ()=>{
-                const newLat = parseFloat(lat.value)||LATITUDE; const newLon = parseFloat(lon.value)||LONGITUDE; const newImgMs = parseInt(imgMs.value)||IMAGE_REFRESH_RATE_MS; const newAlertsMs = parseInt(alertsMs.value)||ALERTS_REFRESH_MS;
-                // gather menu rows
-                const newMenu = [];
-                menuContainer.querySelectorAll('div').forEach(row=>{
-                    const inputs = row.querySelectorAll('input'); if(!inputs || inputs.length<2) return;
-                    const title = inputs[0].value.trim(); const url = inputs[1].value.trim();
-                    if(url) newMenu.push({ url: url, title: title || url });
-                });
-                menuData = newMenu;
-                // gather camera rotation rows (direct child panels only)
-                const newCameraRots = [];
-                Array.from(cameraRotContainer.children).forEach(panel=>{
-                    const top = panel.querySelector('div'); if(!top) return;
-                    const inputs = top.querySelectorAll('input'); if(!inputs || inputs.length<2) return;
-                    const tileIndex = parseInt(inputs[0].value);
-                    const interval = parseInt(inputs[1].value) || 120000;
-                        // collect per-URL inputs
-                        const urlInputs = panel.querySelectorAll('.cam-url-input');
-                        const urls = Array.from(urlInputs).map(i=>i.value.trim()).filter(Boolean);
-                    if(!isNaN(tileIndex) && urls.length>0) newCameraRots.push({ tileIndex: tileIndex, intervalMs: interval, urls: urls, currentIndex: 0 });
-                });
-                cameraRotations = newCameraRots;
-                // gather tile rows
-                const newContent = [];
-                tilesContainer.querySelectorAll('div').forEach(row=>{
-                    const inputs = row.querySelectorAll('input'); if(!inputs || inputs.length<1) return;
-                    const url = inputs[0].value.trim(); const title = (inputs[1] && inputs[1].value)? inputs[1].value.trim() : '';
-                    if(url) newContent.push({ url: url, title: title });
-                });
-                LATITUDE = newLat; LONGITUDE = newLon; IMAGE_REFRESH_RATE_MS = newImgMs; ALERTS_REFRESH_MS = newAlertsMs; contentData = newContent;
-                saveSettingsToStorage(); renderMenu(); buildGrid(); refreshImages();
-                // restart intervals
-                if(refreshIntervalId) clearInterval(refreshIntervalId); refreshIntervalId = setInterval(refreshImages, IMAGE_REFRESH_RATE_MS);
-                if(tickerIntervalId) clearInterval(tickerIntervalId); tickerIntervalId = setInterval(updateTicker, IMAGE_REFRESH_RATE_MS);
-                if(alertsIntervalId) clearInterval(alertsIntervalId); alertsIntervalId = setInterval(updateAlerts, ALERTS_REFRESH_MS);
-                // restart camera rotations
-                stopCameraRotations(); startCameraRotations();
-                updateAlerts().then(()=>updateTicker()); closeLightbox();
-            };
-            cancelBtn.onclick = ()=>{ closeLightbox(); };
-            resetBtn.onclick = ()=>{ if(!confirm('Reset to built-in defaults? This will overwrite current tiles and settings.')) return; localStorage.removeItem('mhd_settings'); location.reload(); };
-            panel.appendChild(form); panel.appendChild(btnRow); panel.style.display='block'; openLightbox('', 'settings');
+            document.getElementById('lightbox').style.display='flex';
+            panel.style.display='block';
         }
 
-        /* INIT */
-        document.addEventListener('DOMContentLoaded', async ()=>{
-            loadSettings();
-            renderMenu();
-            buildGrid();
-            refreshImages();
-            startCameraRotations();
-            refreshIntervalId = setInterval(refreshImages, IMAGE_REFRESH_RATE_MS);
-            // Await alerts so ticker includes alert text immediately
-            await updateAlerts();
-            updateTicker();
-            tickerIntervalId = setInterval(updateTicker, IMAGE_REFRESH_RATE_MS);
-            alertsIntervalId = setInterval(updateAlerts, ALERTS_REFRESH_MS);
+        function addRow(targetId) {
+            const r = document.createElement('div'); r.className='settings-row';
+            if (targetId === 'rss-editor') {
+                r.innerHTML = `<input type="text" placeholder="RSS URL" style="flex:1" class="rss-url-input"><button class="btn-del" onclick="this.parentElement.remove()">X</button>`;
+            } else if (targetId === 'camera-rotation-list') {
+                r.innerHTML = `<input type="text" placeholder="Camera URL" style="flex:1" class="cam-url"><button class="btn-del" onclick="this.parentElement.remove()">X</button>`;
+            } else {
+                const prefix = targetId === 'menu-editor' ? 'menu' : 'tile';
+                r.innerHTML = `<input type="text" placeholder="Title" style="width:150px" class="${prefix}-title"><input type="text" placeholder="URL" style="flex:1" class="${prefix}-url"><button class="btn-del" onclick="this.parentElement.remove()">X</button>`;
+            }
+            document.getElementById(targetId).appendChild(r);
+        }
+
+        function saveSettings(){
+            LATITUDE = parseFloat(document.getElementById('set-lat').value);
+            LONGITUDE = parseFloat(document.getElementById('set-lon').value);
+            cameraRotations[0].urls = Array.from(document.querySelectorAll('.cam-url')).map(i => i.value).filter(v => v);
+            contentData = Array.from(document.getElementById('tile-editor').children).map(row => ({
+                title: row.querySelector('.tile-title').value,
+                url: row.querySelector('.tile-url').value
+            })).filter(t => t.url);
+            menuData = Array.from(document.getElementById('menu-editor').children).map(row => ({
+                title: row.querySelector('.menu-title').value,
+                url: row.querySelector('.menu-url').value
+            })).filter(m => m.url);
+            rssUrls = Array.from(document.querySelectorAll('.rss-url-input')).map(i => i.value).filter(v => v);
+            
+            localStorage.setItem('mhd_settings', JSON.stringify({ latitude: LATITUDE, longitude: LONGITUDE, contentData, menuData, cameraRotations, rssUrls }));
+            location.reload();
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const s = JSON.parse(localStorage.getItem('mhd_settings'));
+            if(s){ 
+                LATITUDE=s.latitude; LONGITUDE=s.longitude; 
+                contentData=s.contentData || contentData; 
+                menuData=s.menuData || menuData;
+                cameraRotations = s.cameraRotations || cameraRotations;
+                rssUrls = s.rssUrls || rssUrls;
+            }
+            buildGrid(); renderMenu(); startCameraRotations();
+            await updateWeatherAlerts();
+            await updateTicker();
+            setInterval(updateWeatherAlerts, 300000);
+            setInterval(updateTicker, 60000);
         });
     </script>
 </body>

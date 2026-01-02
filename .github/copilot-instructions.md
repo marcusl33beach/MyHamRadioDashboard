@@ -50,6 +50,14 @@ What NOT to change
 If something is unclear
 - Tell me which file/line you want clarified (e.g., "Dashboard.html contentData lines around 60-100") and I will update this guidance.
 
+Feature updates
+- When adding or changing user-visible features, always update `README.MD` with:
+  - A concise changelog entry describing the feature and its usage.
+  - Any new configuration or runtime steps needed (e.g., new settings, API keys, or recommended run modes).
+  - Notes about browser limitations or embedding issues when relevant.
+  
+  AI contributors: include the README update as part of any PR or patch that introduces a feature. This ensures users have an up-to-date usage guide and changelog.
+
 ----
 Generated: automated pass — please review and request edits.
 
