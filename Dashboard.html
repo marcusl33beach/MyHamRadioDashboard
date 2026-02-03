@@ -91,6 +91,13 @@
     </style>
 </head>
 <body>
+
+    <div style="position: absolute; top: 10px; right: 10px; z-index: 9999;">
+        <button onclick="logout()" title="Logout" style="background:none; border:none; color:#888; cursor:pointer; font-size:24px; transition: color 0.3s;" onmouseover="this.style.color='#c0392b'" onmouseout="this.style.color='#888'">
+            ⏻
+        </button>
+    </div>
+
     <div id="page-container">
         <main id="grid-container"></main>
         <div id="ticker-wrap">
@@ -149,7 +156,8 @@
         let menuData = [
             { url: 'https://hamstudy.org/', title: 'HamStudy.org' },
             { url: 'contacts.html', title: 'GMRS Contacts' },
-            { url: 'GMRSNet.html', title: 'GMRS NetLog' },
+            { url: 'NetRadioLog.html', title: 'NetRadio Log' },
+            { url: 'frequencies.html', title: 'GMRS Frequencies' },
             { url: 'https://www.weather.gov/', title: 'NWS Home' },
             { url: 'https://www.broadcastify.com/listen/', title: 'Broadcastify' },
             { url: 'https://ohgo.com/cincinnati?lt=39.17072157631222&ln=-84.47758421160262&z=10&ls=incident,dangerous-slowdown,construction,camera', title: 'OHGO Cameras' },
@@ -249,8 +257,22 @@
             menuData.forEach(item=>{
                 const a = document.createElement('a'); a.href = item.url; a.target = '_blank'; a.innerText = item.title; container.appendChild(a);
             });
+            
+            // Administrative Links
+            container.innerHTML += `<hr style="border: 0; border-top: 1px solid #444; margin: 5px 0;">`;
             container.innerHTML += `<a href="javascript:location.reload()">Refresh Dashboard</a>`;
             container.innerHTML += `<a href="javascript:void(0)" onclick="openSettings()">Settings</a>`;
+
+            // Menu Logout Link
+            const logoutLink = document.createElement('a');
+            logoutLink.href = "javascript:void(0)";
+            logoutLink.style.color = "#ff4d4d";
+            logoutLink.innerHTML = "🔌 <b>Log Off Station</b>";
+            logoutLink.onclick = (e) => {
+                e.preventDefault();
+                logout();
+            };
+            container.appendChild(logoutLink);
         }
 
         function openLightbox(url, type){
@@ -289,7 +311,7 @@
             let combinedHeadlines = "";
             for (let url of rssUrls) {
                 try {
-                    const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`);
+                    const res = await fetch(`https.api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`);
                     const data = await res.json();
                     if(data.items) combinedHeadlines += data.items.map(item => item.title).join(' • ') + " | ";
                 } catch(e) { console.error("RSS fetch failed", e); }

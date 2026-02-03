@@ -6,13 +6,15 @@
 
 ### 🚀 The "Quick Start"
 1.  **Download** the repository.
-2.  **Double-click** `Dashboard.html` to open it in your favorite browser.
-3.  **Configure** your shack via the **Menu → Settings** lightbox.
+2.  **Double-click** `index.html` to open it in your favorite browser.
+3.  **Explore** the different pages from the central console.
 4.  **Stay Informed** with a persistent dashboard that lives entirely on your machine.
 
 ---
 
 ### 🛠 Recent Signal Reports (Changelog)
+* **Central Console (`index.html`):** A new central hub to access all the different pages of the dashboard.
+* **Unified Theme:** All pages now share a consistent, modern, and dark theme.
 * **The Grid:** Editable `contentData` tiles in a 4x3 layout with cache-busted refreshing to keep data current.
 * **"Cyclops" Camera Engine:** Rotate multiple camera URLs (weather cams, shack cams, or repeater sites) inside a single tile on a configurable timer.
 * **Camera Grid Lightbox:** Click Tile 8 to instantly pop open a full-screen grid showing all your rotation cameras at once—perfect for spotting storms or traffic jams.
@@ -20,7 +22,7 @@
 * **RSS Integration:** Add your favorite news feeds directly into the scrolling ticker via the settings menu.
 * **On-the-Fly Settings:** A sleek lightbox editor for tiles, menu links, coordinates, and refresh intervals. Everything saves to `localStorage` (`mhd_settings`).
 * **GMRS Contact Logger (`contacts.html`):** A visual, map-based logbook. Right-click on the map to drop a pin where you made contact, save their callsign, and keep notes on the QSO.
-* **Net Check-In Log (`GMRSNet.html`):** A dedicated tool for Net Control Stations. Start a net with a timestamped header and quickly log check-ins with locations and signal reports.
+* **Net Check-In Log (`NetRadioLog.html`):** A dedicated tool for Net Control Stations. Start a net with a timestamped header and quickly log check-ins with locations and signal reports.
 
 ---
 
@@ -33,9 +35,11 @@ In the spirit of emergency preparedness, this dashboard doesn't need a cloud to 
 ---
 
 ### 📦 The Manifest
-* **`Dashboard.html`** – The brains: 4x3 grid, scrolling ticker, settings engine, camera rotator, and camera grid lightbox.
+* **`index.html`** – The central hub for the dashboard, providing access to all other pages.
+* **`dashboard.html`** – The brains: 4x3 grid, scrolling ticker, settings engine, camera rotator, and camera grid lightbox.
 * **`contacts.html`** – Your digital logbook for GMRS contacts (City/State) powered by Leaflet maps and local storage.
-* **`GMRSNet.html`** – A streamlined interface for logging Nets, grouped by date and Net Control callsign.
+* **`NetRadioLog.html`** – A streamlined interface for logging Nets, grouped by date and Net Control callsign.
+* **`frequencies.html`** – A personal and editable list of GMRS frequencies.
 
 ---
 

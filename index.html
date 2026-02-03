@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WSGA832 // Console</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;500&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0a0a0a; }
+        .mono { font-family: 'Fira Code', monospace; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .glow-cyan { box-shadow: 0 0 20px rgba(6, 182, 212, 0.2); }
+        .signal-wave {
+            height: 40px;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .bar { width: 4px; background: #f97316; animation: signal 1.2s infinite ease-in-out; }
+        @keyframes signal {
+            0%, 100% { height: 10px; }
+            50% { height: 35px; }
+        }
+    </style>
+</head>
+<body class="text-slate-300 p-4 md:p-12">
+
+    <div class="max-w-5xl mx-auto space-y-8">
+        
+        <header class="glass p-8 rounded-3xl glow-cyan relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10 mono text-xs">Uptime: 147 days</div>
+            <h1 class="text-5xl font-bold text-white mb-4 tracking-tight">
+                <span class="text-cyan-400">$</span> whoami <span class="animate-pulse">_</span>
+            </h1>
+            <p class="text-xl text-slate-400 max-w-2xl leading-relaxed">
+                Marc WSGA832 Turning caffeine into code and <span class="text-orange-500 font-bold">5W signals</span> into <span class="text-cyan-400 font-bold">502 Bad Gateways</span>. 
+                Pythonista, Game Dev, and SysAdmin who firmly believes that if it isn't automated, it's broken.
+            </p>
+        </header>
+
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="glass p-6 rounded-2xl border-l-4 border-cyan-500">
+                <h3 class="mono text-cyan-400 text-sm mb-2 uppercase tracking-widest">System Status</h3>
+                <p class="text-2xl font-semibold text-white">99.9% Uptime</p>
+                <p class="text-sm text-slate-500 mt-1">The 0.1% was a DNS issue (it's always DNS).</p>
+            </div>
+            <div class="glass p-6 rounded-2xl border-l-4 border-orange-500">
+                <h3 class="mono text-orange-400 text-sm mb-2 uppercase tracking-widest">Memory Allocation</h3>
+                <p class="text-2xl font-semibold text-white">82% Capacity</p>
+                <p class="text-sm text-slate-500 mt-1">Primarily occupied by useless GMRS callsigns and Python decorators.</p>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 glass p-8 rounded-2xl">
+                <h2 class="text-2xl font-bold text-white mb-4">Transmission Log</h2>
+                <p class="text-slate-400 leading-relaxed mb-4">
+                    When I'm not wrestling with Linux kernels or building game prototypes, you can find me on the airwaves. 
+                    I operate <span class="mono text-orange-400">WSGA832</span>, participating in local GMRS nets and emergency comms. 
+                    I balance my time between elegant code, local repeaters, and playing guitar for my wife, two kids, and the dog (who is my most honest critic).
+                </p>
+                <div class="flex items-center gap-4 bg-black/40 p-4 rounded-xl border border-white/5">
+                    <div class="signal-wave">
+                        <div class="bar" style="animation-delay: 0.1s"></div>
+                        <div class="bar" style="animation-delay: 0.3s"></div>
+                        <div class="bar" style="animation-delay: 0.2s"></div>
+                        <div class="bar" style="animation-delay: 0.4s"></div>
+                        <div class="bar" style="animation-delay: 0.1s"></div>
+                    </div>
+                    <div>
+                        <p class="mono text-xs uppercase text-slate-500 tracking-tighter">Current Frequency</p>
+                        <p class="mono text-orange-500 font-bold text-lg">462.7250 MHz <span class="text-xs text-slate-400 font-normal ml-2">// PL 123.0</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass p-8 rounded-2xl flex flex-col justify-center items-center text-center">
+                <div class="w-20 h-20 bg-gradient-to-tr from-cyan-500 to-blue-600 rounded-full mb-4 flex items-center justify-center text-3xl shadow-lg">
+                    📻
+                </div>
+                <h3 class="text-xl font-bold text-white">WSGA832</h3>
+                <p class="text-sm text-slate-500 mono">GMRS Operator</p>
+                <p class="mt-4 text-xs italic text-slate-400">"Is this frequency clear? Hearing nothing, this is WSGA832."</p>
+            </div>
+        </section>
+
+        <section class="glass rounded-2xl overflow-hidden">
+            <div class="bg-white/5 px-6 py-3 border-b border-white/10 flex items-center justify-between">
+                <div class="flex gap-2">
+                    <div class="w-3 h-3 rounded-full bg-red-500/50"></div>
+                    <div class="w-3 h-3 rounded-full bg-yellow-500/50"></div>
+                    <div class="w-3 h-3 rounded-full bg-green-500/50"></div>
+                </div>
+                <span class="mono text-xs text-slate-500">~/projects/github-repos</span>
+            </div>
+            <div class="p-6 mono text-sm space-y-4">
+                <div class="group cursor-pointer" onclick="window.location.href='contacts.html';">
+                    <p class="text-cyan-400">dir ./contacts</p>
+                    <p class="text-slate-500 italic ml-4"># My contact information.</p>
+                </div>
+                <div class="group cursor-pointer" onclick="window.location.href='dashboard.html';">
+                    <p class="text-cyan-400">dir ./dashboard</p>
+                    <p class="text-slate-500 italic ml-4"># My Ham Radio Dashboard.</p>
+                </div>
+                <div class="group cursor-pointer" onclick="window.location.href='frequencies.html';">
+                    <p class="text-cyan-400">dir ./frequencies</p>
+                    <p class="text-slate-500 italic ml-4"># My GMRS frequency list.</p>
+                </div>
+                <div class="group cursor-pointer" onclick="window.location.href='NetRadioLog.html';">
+                    <p class="text-cyan-400">dir ./net-radio-log</p>
+                    <p class="text-slate-500 italic ml-4"># My Net Radio log book.</p>
+                </div>
+                <div class="pt-4">
+                    <p class="text-green-500">sudo apt-get install more-coffee</p>
+                    <p class="text-white mt-1">Reading package lists... Done.</p>
+                </div>
+            </div>
+        </section>
+
+        <footer class="text-center pb-12">
+            <p class="mono text-xs text-slate-600">
+                Built with Tailwind & Over-Caffeinated Logic. <br>
+                &copy; 2026 WSGA832 // Clear frequencies and clean code.
+            </p>
+        </footer>
+
+    </div>
+</body>
+</html>

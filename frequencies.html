@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WSGA832 // GMRS Frequencies</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;500&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0a0a0a; }
+        .mono { font-family: 'Fira Code', monospace; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .glow-cyan { box-shadow: 0 0 20px rgba(6, 182, 212, 0.2); }
+        .btn {
+            background-color: #1a1a1a;
+            border: 1px solid #3a3a3a;
+            color: #d0d0d0;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #2a2a2a;
+            border-color: #4a4a4a;
+        }
+        .btn-delete { background-color: #e74c3c; }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th, .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .data-table th { background-color: rgba(255, 255, 255, 0.05); }
+        .data-table tr:hover { background-color: rgba(255, 255, 255, 0.03); }
+    </style>
+</head>
+<body class="text-slate-300 p-4 md:p-12">
+
+    <div class="max-w-5xl mx-auto space-y-8">
+
+        <header class="glass p-8 rounded-3xl glow-cyan relative overflow-hidden">
+            <h1 class="text-5xl font-bold text-white mb-4 tracking-tight">
+                <a href="index.html" class="text-cyan-400">$</a> GMRS Frequencies
+            </h1>
+            <p class="text-xl text-slate-400 max-w-2xl leading-relaxed">
+                A personal list of GMRS frequencies and repeaters.
+            </p>
+        </header>
+
+        <section class="glass p-8 rounded-2xl">
+            <h2 class="text-2xl font-bold text-white mb-4">Add Frequency</h2>
+            <div class="flex flex-col md:flex-row gap-4">
+                <input type="text" id="freqName" placeholder="e.g. Ch 15 / Repeater" class="w-full md:w-1/3 bg-black/40 border border-white/10 rounded-lg p-2 mono">
+                <input type="text" id="freqValue" placeholder="462.xxxx" class="w-full md:w-1/3 bg-black/40 border border-white/10 rounded-lg p-2 mono">
+                <input type="text" id="freqTone" placeholder="141.3 / Travel" class="w-full md:w-1/3 bg-black/40 border border-white/10 rounded-lg p-2 mono">
+            </div>
+            <button onclick="addFrequency()" class="btn mt-4">Add to List</button>
+        </section>
+
+        <section class="glass p-8 rounded-2xl">
+            <h2 class="text-2xl font-bold text-white mb-4">Frequency List</h2>
+            <table id="freqTable" class="data-table">
+                <thead>
+                    <tr>
+                        <th>Channel Name</th>
+                        <th>Frequency</th>
+                        <th>Tone / Notes</th>
+                        <th style="width: 50px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="freqBody" class="mono">
+                </tbody>
+            </table>
+        </section>
+
+        <footer class="text-center pb-12">
+            <p class="mono text-xs text-slate-600">
+                &copy; 2026 WSGA832 // Clear frequencies and clean code.
+            </p>
+        </footer>
+
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'mhd_frequencies';
+
+        const defaultFrequencies = [
+            { name: "Channel 1", freq: "462.5625", tone: "Interstitial" },
+            { name: "Channel 2", freq: "462.5875", tone: "Interstitial" },
+            { name: "Channel 3", freq: "462.6125", tone: "Interstitial" },
+            { name: "Channel 4", freq: "462.6375", tone: "Interstitial" },
+            { name: "Channel 5", freq: "462.6625", tone: "Interstitial" },
+            { name: "Channel 6", freq: "462.6875", tone: "Interstitial" },
+            { name: "Channel 7", freq: "462.7125", tone: "Interstitial" },
+            { name: "Channel 15", freq: "462.5500", tone: "Main/Repeater Out" },
+            { name: "Channel 16", freq: "462.5750", tone: "Main/Repeater Out" },
+            { name: "Channel 17", freq: "462.6000", tone: "Main/Repeater Out" },
+            { name: "Channel 18", freq: "462.6250", tone: "Main/Repeater Out" },
+            { name: "Channel 19", freq: "462.6500", tone: "Main/Repeater Out" },
+            { name: "Channel 20", freq: "462.6750", tone: "Main/Repeater Out" },
+            { name: "Channel 21", freq: "462.7000", tone: "Main/Repeater Out" },
+            { name: "Channel 22", freq: "462.7250", tone: "Main/Repeater Out" },
+            { name: "Cinciny725", freq: "462.725", tone: "123" },
+            { name: "Cinciny700", freq: "462.700", tone: "67" }
+        ];
+
+        function loadFrequencies() {
+            let data = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            
+            if (!data) {
+                data = defaultFrequencies;
+                saveFrequencies(data);
+            }
+
+            const tbody = document.getElementById('freqBody');
+            tbody.innerHTML = '';
+
+            data.forEach((item, index) => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${item.name}</td>
+                    <td>${item.freq}</td>
+                    <td>${item.tone}</td>
+                    <td><button class="btn btn-delete" onclick="deleteFrequency(${index})">Del</button></td>
+                `;
+            });
+        }
+
+        function addFrequency() {
+            const name = document.getElementById('freqName').value;
+            const freq = document.getElementById('freqValue').value;
+            const tone = document.getElementById('freqTone').value;
+
+            if (!name || !freq) {
+                alert("Please enter at least a Name and Frequency.");
+                return;
+            }
+
+            const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            data.push({ name, freq, tone });
+            saveFrequencies(data);
+            
+            document.getElementById('freqName').value = '';
+            document.getElementById('freqValue').value = '';
+            document.getElementById('freqTone').value = '';
+            
+            loadFrequencies();
+        }
+
+        function deleteFrequency(index) {
+            if (confirm("Remove this frequency from your list?")) {
+                const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
+                data.splice(index, 1);
+                saveFrequencies(data);
+                loadFrequencies();
+            }
+        }
+
+        function saveFrequencies(data) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        document.addEventListener('DOMContentLoaded', loadFrequencies);
+    </script>
+</body>
+</html>
